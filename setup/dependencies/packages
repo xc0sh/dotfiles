@@ -2,6 +2,7 @@ wget
 curl
 git
 rsync
+stow
 unzip
 tar
 jq

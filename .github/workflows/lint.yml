@@ -59,7 +59,9 @@ jobs:
           # README.md legitimately mentions both terms 4 times too (the
           # "personal fork of" line plus the Known Limitations section) --
           # excluding only CREDITS/LICENSE would fail this job on day one.
-          if git grep -Iil -E 'ml4w|mylinuxforwork' -- ':!CREDITS.md' ':!LICENSE' ':!README.md'; then
+          # This workflow file is also excluded: it legitimately contains
+          # both terms in its own check logic below (self-referential).
+          if git grep -Iil -E 'ml4w|mylinuxforwork' -- ':!CREDITS.md' ':!LICENSE' ':!README.md' ':!.github/workflows/lint.yml'; then
             echo "::error::Found stray ML4W/mylinuxforwork branding outside the allowed attribution files"
             exit 1
           fi
