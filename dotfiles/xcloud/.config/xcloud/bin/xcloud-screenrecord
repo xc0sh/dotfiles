@@ -104,8 +104,15 @@ if [ "$#" -ge 1 ] && [ "$1" != "toggle" ]; then
     exit 0
 fi
 
-# 2. Interactive Mode (fzf) -- used for a bare invocation and for the
-# keybind's "toggle" argument when no recording is in progress yet.
+# 2. Keybind Mode ("toggle" with no recording running, no controlling
+# terminal -- fzf can't open one, so fall back to area capture. slurp is a
+# Wayland overlay, not a TTY prompt, so ESC still cancels cleanly.
+if [ ! -t 0 ]; then
+    start_recording "area"
+    exit 0
+fi
+
+# 3. Interactive Mode (fzf) -- used for a bare invocation from a terminal.
 MODE_CHOICE=$(echo -e "area\nwindow\nfullscreen" | fzf \
     --style full \
     --height 15% \
