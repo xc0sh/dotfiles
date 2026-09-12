@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+echo ":: The script will install the xCloud Hyprland Settings app."
+echo ":: Please note: The app requires Flatpak."
+if gum confirm "Do you want to proceed?"; then
+    xcloud_app="com.xcloud.hyprlandsettings"
+    xcloud_app_repo="hyprland-settings"
+    echo ":: Installing $xcloud_app"
+    bash -c "$(curl -s https://raw.githubusercontent.com/xc0sh/$xcloud_app_repo/master/setup.sh)"
+fi

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# ============================================================
+# Clones or updates the xc0sh/wallpapers collection into
+# ~/Pictures/wallpaper for use with waypaper.
+# ============================================================
+set -e
+
+REPO_URL="https://github.com/xc0sh/wallpapers.git"
+TARGET_DIR="$HOME/Pictures/wallpaper"
+
+if [ -d "$TARGET_DIR/.git" ]; then
+    echo "Updating existing wallpaper collection in $TARGET_DIR..."
+    git -C "$TARGET_DIR" pull --ff-only
+elif [ -e "$TARGET_DIR" ]; then
+    echo "Error: $TARGET_DIR exists and is not a git repository. Move it aside first."
+    exit 1
+else
+    echo "Cloning wallpaper collection into $TARGET_DIR..."
+    git clone "$REPO_URL" "$TARGET_DIR"
+fi
+
+echo "Done. Point waypaper's folder setting at $TARGET_DIR if it isn't already."

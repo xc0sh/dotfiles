@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+if [ -f $HOME/.config/xcloud/settings/hide-fastfetch ]; then
+    echo ":: Show fastfetch"
+    rm $HOME/.config/xcloud/settings/hide-fastfetch
+else
+    echo ":: Hide fastfetch"
+    touch $HOME/.config/xcloud/settings/hide-fastfetch
+fi

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="528.13916" height="528.13916" viewBox="0 0 528.13916 528.13916" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <title>xCloud</title>
+  <g fill="#FFFFFF">
+    <circle cx="190" cy="230" r="95" />
+    <circle cx="300" cy="195" r="120" />
+    <circle cx="400" cy="250" r="80" />
+    <rect x="150" y="230" width="300" height="110" rx="55" />
+  </g>
+</svg>
