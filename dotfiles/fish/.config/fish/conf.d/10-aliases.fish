@@ -56,7 +56,7 @@ alias gcredential="git config credential.helper store"
 # -----------------------------------------------------
 # Scripts
 # -----------------------------------------------------
-alias ascii='~/.config/xcloud/scripts/figlet.sh'
+alias ascii='~/.config/xcloud/scripts/xcloud-ascii-header'
 
 # -----------------------------------------------------
 # System
