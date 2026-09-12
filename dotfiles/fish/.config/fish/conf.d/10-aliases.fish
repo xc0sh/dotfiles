@@ -20,6 +20,7 @@ alias wifi='nmtui'
 alias arch-cleanup='~/.config/xcloud/scripts/arch/cleanup.sh'
 alias apps='~/.config/xcloud/bin/xcloud-apps'
 alias screenshot='~/.config/xcloud/bin/xcloud-screenshot'
+alias screenrecord='~/.config/xcloud/bin/xcloud-screenrecord'
 alias updates='~/.config/xcloud/scripts/xcloud-install-system-updates'
 alias filemanager='~/.config/xcloud/settings/filemanager'
 alias autostart='~/.config/xcloud/scripts/xcloud-autostart'
@@ -54,9 +55,16 @@ alias gcheck="git checkout"
 alias gcredential="git config credential.helper store"
 
 # -----------------------------------------------------
+# Modern CLI Tools
+# -----------------------------------------------------
+# bat, fd, and tealdeer are intentionally NOT aliased over cat/find/tldr --
+# shadowing cat/find could surprise scripts and pipelines that expect their
+# POSIX behavior. Use them directly: `bat <file>`, `fd <pattern>`.
+
+# -----------------------------------------------------
 # Scripts
 # -----------------------------------------------------
-alias ascii='~/.config/xcloud/scripts/figlet.sh'
+alias ascii='~/.config/xcloud/scripts/xcloud-ascii-header'
 
 # -----------------------------------------------------
 # System

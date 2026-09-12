@@ -21,13 +21,14 @@ cd dotfiles
 2. Each app's config is its own [Stow](https://www.gnu.org/software/stow/) package under `dotfiles/` (e.g. `dotfiles/hypr/`, `dotfiles/waybar/`). Symlink the ones you want into `$HOME`:
    ```sh
    cd dotfiles
-   stow -t ~ bashrc zshrc btop fastfetch fish gtk-2.0 gtk-3.0 gtk-4.0 hypr kitty \
+   stow -t ~ atuin bashrc zshrc btop fastfetch fish git gtk-2.0 gtk-3.0 gtk-4.0 hypr kitty \
           matugen nvim ohmyposh qt6ct quickshell rofi swaync vim waybar waypaper \
-          wlogout xcloud xcloud-dotfiles-settings xresources xsettingsd \
+          wlogout xcloud xcloud-dotfiles-settings xresources xsettingsd zellij \
           chromium-flags edge-flags
    ```
    A fresh machine will likely already have `~/.bashrc`, `~/.zshrc`, or `~/.gtkrc-2.0` (distro defaults) — Stow will refuse to overwrite them. Either move those aside first (`mv ~/.bashrc ~/.bashrc.bak`, etc.), or use `stow --adopt <package>` to pull the existing file into the repo first, then `git checkout -- .` inside `dotfiles/` to discard that adopted content and restore this repo's version.
 3. Optionally run `.config/xcloud/scripts/xcloud-wallpaper-sync` (inside the `xcloud` package, so only available after stowing it) to clone the companion [xc0sh/wallpapers](https://github.com/xc0sh/wallpapers) collection into `~/Pictures/wallpaper` for use with waypaper.
+4. Install the modern CLI tools wired into the shell packages above: `sudo pacman -S bat fd zoxide atuin git-delta yazi tealdeer direnv zellij bash-preexec` (Arch; `extra` repo, no AUR needed). Only `atuin`, `git`, and `zellij` ship as their own Stow packages (config above) — the rest (`bat`/`fd`/`tealdeer`/`zoxide`/`yazi`/`direnv`) are alias/init-only and already wired into the `bashrc`/`zshrc`/`fish` packages. Run `tldr --update` once after installing tealdeer to fetch its page cache.
 
 Arch, Fedora and openSuse Tumbleweed are directly supported by the `setup/` scripts (inherited from upstream).
 
