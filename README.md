@@ -22,7 +22,7 @@ cd dotfiles
    ```sh
    cd dotfiles
    stow -t ~ bashrc zshrc btop fastfetch fish gtk-2.0 gtk-3.0 gtk-4.0 hypr kitty \
-          matugen ohmyposh qt6ct quickshell rofi swaync vim waybar waypaper \
+          matugen nvim ohmyposh qt6ct quickshell rofi swaync vim waybar waypaper \
           wlogout xcloud xcloud-dotfiles-settings xresources xsettingsd \
           chromium-flags edge-flags
    ```
@@ -49,7 +49,7 @@ cp -r dotfiles/waybar/.config/waybar ~/.config/waybar
 - A few scripts still reference `xc0sh/xcloud-dotfiles-settings` and `xc0sh/xcloud-quickshell-overview` for optional companion installs — these repos don't exist yet under `xc0sh`; fork them separately if you want that functionality.
 - `.config/xcloud/settings/walker-theme` is written by all 5 theme scripts but read by nothing — inert until `.config/xcloud/settings/launcher` is switched from `rofi` to `walker`.
 - `.config/xcloud/settings/statusbar` supports `waybar`/`quickshell` only (it picks which bar the reload/toggle keybinds act on). `hypr/conf/autostart.lua` starts waybar unconditionally regardless of this setting, so `statusbar.json`'s `enabled: false` (the Quickshell-native bar component's own default) is not a bug.
-- `setup/preflight-opensuse.sh` sources a `setup/_prebuilt.sh` that does not exist in this repo — a pre-existing issue inherited as-is, not yet fixed.
+- `setup/preflight-opensuse.sh` sources a `setup/_prebuilt.sh` that only ships as part of the unforked installer app's full flow, not in this repo; run standalone (as most people running `setup/preflight-opensuse.sh` directly will), it now warns to stderr and continues instead of crashing.
 
 ## Credits
 
