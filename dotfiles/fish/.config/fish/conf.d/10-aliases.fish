@@ -54,6 +54,13 @@ alias gcheck="git checkout"
 alias gcredential="git config credential.helper store"
 
 # -----------------------------------------------------
+# Modern CLI Tools
+# -----------------------------------------------------
+# bat, fd, and tealdeer are intentionally NOT aliased over cat/find/tldr --
+# shadowing cat/find could surprise scripts and pipelines that expect their
+# POSIX behavior. Use them directly: `bat <file>`, `fd <pattern>`.
+
+# -----------------------------------------------------
 # Scripts
 # -----------------------------------------------------
 alias ascii='~/.config/xcloud/scripts/xcloud-ascii-header'
