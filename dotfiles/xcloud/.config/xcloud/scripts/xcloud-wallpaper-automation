@@ -9,6 +9,7 @@
 xcloud_cache_folder="$HOME/.cache/xcloud/hyprland-dotfiles"
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 APP_NAME="Waypaper"
 NOTIFICATION_ICON="preferences-desktop-wallpaper-symbolic"
@@ -16,14 +17,14 @@ NOTIFICATION_ICON="preferences-desktop-wallpaper-symbolic"
 sec=$(cat ~/.config/xcloud/settings/wallpaper-automation)
 _setWallpaperRandomly() {
     while true; do
-        $HOME/.config/xcloud/scripts/xcloud-wallpaper --random
+        "$HOME"/.config/xcloud/scripts/xcloud-wallpaper --random
         echo ":: Next wallpaper in $sec seconds..."
-        sleep $sec
+        sleep "$sec"
     done
 }
 
-if [ ! -f $xcloud_cache_folder/wallpaper-automation ]; then
-    touch $xcloud_cache_folder/wallpaper-automation
+if [ ! -f "$xcloud_cache_folder"/wallpaper-automation ]; then
+    touch "$xcloud_cache_folder"/wallpaper-automation
     echo ":: Start wallpaper automation script"
     notify_user \
         --a "${APP_NAME}" \
@@ -31,12 +32,12 @@ if [ ! -f $xcloud_cache_folder/wallpaper-automation ]; then
         --m "Wallpaper automation process started.\nWallpaper will be changed every $sec seconds."
     _setWallpaperRandomly
 else
-    rm $xcloud_cache_folder/wallpaper-automation
+    rm "$xcloud_cache_folder"/wallpaper-automation
     notify_user \
         --a "${APP_NAME}" \
         --i "${NOTIFICATION_ICON}" \
         --m "Wallpaper automation process stopped."
     echo ":: Wallpaper automation script process $wp stopped"
     wp=$(pgrep -f xcloud-wallpaper-automation)
-    kill -KILL $wp
+    kill -KILL "$wp"
 fi

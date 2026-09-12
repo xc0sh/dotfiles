@@ -7,9 +7,9 @@
 #            |___/ |___/                         |___/
 #
 
-if [ -f $HOME/.config/xcloud/settings/waybar-disabled ]; then
-    rm $HOME/.config/xcloud/settings/waybar-disabled
+if [ -f "$HOME"/.config/xcloud/settings/waybar-disabled ]; then
+    rm "$HOME"/.config/xcloud/settings/waybar-disabled
 else
-    touch $HOME/.config/xcloud/settings/waybar-disabled
+    touch "$HOME"/.config/xcloud/settings/waybar-disabled
 fi
-$HOME/.config/waybar/launch.sh &
+"$HOME"/.config/waybar/launch.sh &

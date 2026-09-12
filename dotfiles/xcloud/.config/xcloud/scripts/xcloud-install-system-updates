@@ -11,26 +11,6 @@ _checkCommandExists() {
     command -v "$1" &> /dev/null
 }
 
-_isInstalled() {
-    package="$1"
-    case $install_platform in
-        arch)
-            check="$($aur_helper -Qs --color always "${package}" | grep "local" | grep "${package} ")"
-            ;;
-        fedora)
-            check="$(dnf repoquery --quiet --installed ""${package}*"")"
-            ;;
-        *) ;;
-    esac
-
-    if [ -n "${check}" ]; then
-        echo 0 #'0' means 'true' in Bash
-        return #true
-    fi
-    echo 1 #'1' means 'false' in Bash
-    return #false
-}
-
 # ------------------------------------------------------
 # Confirm Start
 # ------------------------------------------------------
@@ -42,7 +22,7 @@ echo
 primarycolor=$(cat ~/.config/xcloud/colors/primary)
 onsurfacecolor=$(cat ~/.config/xcloud/colors/onsurface)
 onprimarycolor=$(cat ~/.config/xcloud/colors/onprimary)
-if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "DO YOU WANT TO START THE UPDATE NOW?"; then
+if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "DO YOU WANT TO START THE UPDATE NOW?"; then
     echo
     echo ":: Update started..."
 elif [ $? -eq 130 ]; then
@@ -82,7 +62,7 @@ elif _checkCommandExists "dnf"; then
 else
     echo ":: ERROR - Platform not supported"
     echo "Press [ENTER] to close."
-    read
+    read -r
 fi
 echo
 
@@ -100,4 +80,4 @@ qs ipc call updates refresh
 
 # Finishing
 echo ":: Update complete! Press [ENTER] to close."
-read
+read -r

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 
 killall hypridle

@@ -12,7 +12,7 @@
 # -----------------------------------------------------
 
 lock_file="$XDG_RUNTIME_DIR/waybar-launch.lock"
-exec 200>$lock_file
+exec 200>"$lock_file"
 flock -n 200 || exit 0
 
 # -----------------------------------------------------
@@ -52,17 +52,17 @@ if [ -f ~/.config/xcloud/settings/waybar-theme.sh ]; then
         echo
         ;;
     esac
-    if [ -d $HOME/.config/waybar/themes/xcloud-modern/light ]; then
-        rm -rf $HOME/.config/waybar/themes/xcloud-modern/light
+    if [ -d "$HOME"/.config/waybar/themes/xcloud-modern/light ]; then
+        rm -rf "$HOME"/.config/waybar/themes/xcloud-modern/light
     fi
-    if [ -d $HOME/.config/waybar/themes/xcloud-modern/dark ]; then
-        rm -rf $HOME/.config/waybar/themes/xcloud-modern/dark
+    if [ -d "$HOME"/.config/waybar/themes/xcloud-modern/dark ]; then
+        rm -rf "$HOME"/.config/waybar/themes/xcloud-modern/dark
     fi
-    if [ -d $HOME/.config/waybar/themes/xcloud/light ]; then
-        rm -rf $HOME/.config/waybar/themes/xcloud/light
+    if [ -d "$HOME"/.config/waybar/themes/xcloud/light ]; then
+        rm -rf "$HOME"/.config/waybar/themes/xcloud/light
     fi
-    if [ -d $HOME/.config/waybar/themes/xcloud/dark ]; then
-        rm -rf $HOME/.config/waybar/themes/xcloud/dark
+    if [ -d "$HOME"/.config/waybar/themes/xcloud/dark ]; then
+        rm -rf "$HOME"/.config/waybar/themes/xcloud/dark
     fi
 fi
 
@@ -81,7 +81,7 @@ fi
 IFS=';' read -ra arrThemes <<<"$themestyle"
 echo ":: Theme: ${arrThemes[0]}"
 
-if [ ! -f ~/.config/waybar/themes${arrThemes[1]}/style.css ]; then
+if [ ! -f ~/.config/waybar/themes"${arrThemes[1]}"/style.css ]; then
     themestyle=$default_theme
 fi
 
@@ -92,7 +92,8 @@ fi
 _toggle_module() {
     local module_name=$1
     local settings_file=$2
-    local value=$(cat "$settings_file")
+    local value
+    value=$(cat "$settings_file")
     local file="$HOME/.config/waybar/themes${arrThemes[0]}/config"
     if [ "$value" == "True" ]; then
         search_string=" \"$module_name\""
@@ -122,17 +123,17 @@ config_file="config"
 style_file="style.css"
 
 # Standard files can be overwritten with an existing config-custom or style-custom.css
-if [ -f ~/.config/waybar/themes${arrThemes[0]}/config-custom ]; then
+if [ -f ~/.config/waybar/themes"${arrThemes[0]}"/config-custom ]; then
     config_file="config-custom"
 fi
-if [ -f ~/.config/waybar/themes${arrThemes[1]}/style-custom.css ]; then
+if [ -f ~/.config/waybar/themes"${arrThemes[1]}"/style-custom.css ]; then
     style_file="style-custom.css"
 fi
 
 # Check if waybar-disabled file exists
-if [ ! -f $HOME/.config/xcloud/settings/waybar-disabled ]; then
+if [ ! -f "$HOME"/.config/xcloud/settings/waybar-disabled ]; then
     HYPRLAND_SIGNATURE=$(hyprctl instances -j | jq -r '.[0].instance')
-    HYPRLAND_INSTANCE_SIGNATURE="$HYPRLAND_SIGNATURE" waybar -c ~/.config/waybar/themes${arrThemes[0]}/$config_file -s ~/.config/waybar/themes${arrThemes[1]}/$style_file &
+    HYPRLAND_INSTANCE_SIGNATURE="$HYPRLAND_SIGNATURE" waybar -c ~/.config/waybar/themes"${arrThemes[0]}"/$config_file -s ~/.config/waybar/themes"${arrThemes[1]}"/$style_file &
     # env GTK_DEBUG=interactive waybar -c ~/.config/waybar/themes${arrThemes[0]}/$config_file -s ~/.config/waybar/themes${arrThemes[1]}/$style_file &
 else
     echo ":: Waybar disabled"

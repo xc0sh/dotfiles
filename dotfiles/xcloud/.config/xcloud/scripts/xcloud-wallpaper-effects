@@ -7,9 +7,8 @@
 #
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
-APP_NAME="Waypaper"
-NOTIFICATION_ICON="preferences-desktop-wallpaper-symbolic"
 
 xcloud_cache_folder="$HOME/.cache/xcloud/hyprland-dotfiles"
 
@@ -21,7 +20,7 @@ options="$(ls ~/.config/hypr/effects/wallpaper/)\noff"
 
 # Open rofi
 choice=$(echo -e "$options" | rofi -dmenu -replace -config ~/.config/rofi/config-themes.rasi -i -no-show-icons -l 5 -width 30)
-if [ ! -z $choice ]; then
+if [ ! -z "$choice" ]; then
     echo "$choice" > "$HOME/.config/xcloud/settings/wallpaper-effect"
-    $HOME/.config/xcloud/scripts/xcloud-wallpaper "$(cat $cache_file)"
+    "$HOME"/.config/xcloud/scripts/xcloud-wallpaper "$(cat "$cache_file")"
 fi

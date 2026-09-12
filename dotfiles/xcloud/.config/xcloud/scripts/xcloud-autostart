@@ -19,12 +19,12 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
 # Ensure that cache folder exists
-mkdir -p $HOME/.cache
+mkdir -p "$HOME"/.cache
 
 # Set Wallpaper
-mkdir -p $CACHE_FOLDER
-if [ ! -f $CACHE_FILE ]; then
-    touch $CACHE_FILE
+mkdir -p "$CACHE_FOLDER"
+if [ ! -f "$CACHE_FILE" ]; then
+    touch "$CACHE_FILE"
     echo "$DEFAULT_WALLPAPER" > "$CACHE_FILE"
     info "Cache file created"
 fi
@@ -70,26 +70,26 @@ info "Quickshell ready"
 # Theming (matugen colors, quickshell reload, nwg-dock launch) must always run.
 # Only the awww image set is skipped when already cached, to avoid a flicker.
 if [[ -z $(find "$AWWW_CACHE_FOLDER" -mindepth 1 -maxdepth 1 -type f -print -quit 2>/dev/null) ]]; then
-    info "Set wallpaper to cache file $(cat $CACHE_FILE)"
-    ~/.config/xcloud/scripts/xcloud-wallpaper "$(cat $CACHE_FILE)" &
+    info "Set wallpaper to cache file $(cat "$CACHE_FILE")"
+    ~/.config/xcloud/scripts/xcloud-wallpaper "$(cat "$CACHE_FILE")" &
 else
-    info "awww cache present, applying theming only for $(cat $CACHE_FILE)"
-    ~/.config/xcloud/scripts/xcloud-wallpaper "$(cat $CACHE_FILE)" --skip-wallpaper &
+    info "awww cache present, applying theming only for $(cat "$CACHE_FILE")"
+    ~/.config/xcloud/scripts/xcloud-wallpaper "$(cat "$CACHE_FILE")" --skip-wallpaper &
 fi
 
 # Start xCloud Settings App
 info "Starting xCloud Dotfiles Settings"
-PROFILE="gg.xcloud.dotfiles" qs -p $HOME/.local/share/xcloud-dotfiles-settings/quickshell &
+PROFILE="gg.xcloud.dotfiles" qs -p "$HOME"/.local/share/xcloud-dotfiles-settings/quickshell &
 info "xCloud Dotfiles Settings started"
 
 # Start Quickshell Overview
 info "Starting Quickshell Overview"
-qs -p $HOME/.config/quickshell/overview &
+qs -p "$HOME"/.config/quickshell/overview &
 info "Quickshell Overview started"
 
 # Start xCloud Welcome App
 info "Starting xCloud Welcome App"
-if [ ! -f $HOME/.cache/xcloud-welcome-autostart ]; then
+if [ ! -f "$HOME"/.cache/xcloud-welcome-autostart ]; then
     timeout=30
     count=0
     sleep 1

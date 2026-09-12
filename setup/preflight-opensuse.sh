@@ -10,7 +10,8 @@ curl -s https://ohmyposh.dev/install.sh | bash -s -- -d ~/.local/bin
 # Prebuild Packages
 # --------------------------------------------------------------
 
-source $repo_path/setup/_prebuilt.sh
+# shellcheck disable=SC2154 # repo_path is exported by the external installer (unforked, see README Known Limitations), not set anywhere in this repo
+source "$repo_path"/setup/_prebuilt.sh
 
 # --------------------------------------------------------------
 # Repositories

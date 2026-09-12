@@ -36,5 +36,5 @@ fi
 IFS=';' read -ra arrThemes <<<"$themestyle"
 echo ":: Theme: ${arrThemes[0]}"
 
-$HOME/.config/waybar/launch.sh
+"$HOME"/.config/waybar/launch.sh
 

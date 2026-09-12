@@ -86,20 +86,20 @@ install_theme() {
     echo ":: Starting installation of the xCloud SDDM theme..."
     
     echo ":: Creating temporary directory..."
-    rm -rf $HOME/.cache/xcloud-tmp
-    mkdir -p $HOME/.cache/xcloud-tmp
+    rm -rf "$HOME"/.cache/xcloud-tmp
+    mkdir -p "$HOME"/.cache/xcloud-tmp
     
     echo ":: Cloning theme into temporary directory..."
-    git clone --depth 1 https://github.com/xc0sh/xcloud-sddm $HOME/.cache/xcloud-tmp/xcloud-sddm
+    git clone --depth 1 https://github.com/xc0sh/xcloud-sddm "$HOME"/.cache/xcloud-tmp/xcloud-sddm
 
     echo ":: Copy theme to sddm folder..."
     sudo mkdir -p /usr/share/sddm/themes/xcloud
-    sudo cp -rf $HOME/.cache/xcloud-tmp/xcloud-sddm/. /usr/share/sddm/themes/xcloud/
+    sudo cp -rf "$HOME"/.cache/xcloud-tmp/xcloud-sddm/. /usr/share/sddm/themes/xcloud/
 
     apply_theme
 
     echo ":: Cleaning up..."
-    rm -rf $HOME/.cache/xcloud-tmp
+    rm -rf "$HOME"/.cache/xcloud-tmp
 
     echo ":: xCloud SDDM theme installed succesfully"
 }
@@ -162,8 +162,8 @@ copy_wallpaper_to_sddm() {
         cp "$SOURCE_WALLPAPER" "$TEMP_JPG"
         echo ":: Wallpaper is already JPEG. Copying directly."
     elif [[ "$MIME_TYPE" == "image/png" ]]; then
-        echo ":: Converting PNG wallpaper to JPEG..." && convert "$SOURCE_WALLPAPER" "$TEMP_JPG"
-        if [ $? -ne 0 ]; then
+        echo ":: Converting PNG wallpaper to JPEG..."
+        if ! convert "$SOURCE_WALLPAPER" "$TEMP_JPG"; then
             echo "ERROR: Failed to convert wallpaper to JPEG."
             rm -f "$TEMP_JPG"
             return 1
@@ -175,8 +175,8 @@ copy_wallpaper_to_sddm() {
     fi
 
     # Copy to SDDM theme directory
-    echo ":: Copying wallpaper to SDDM theme..." && sudo cp "$TEMP_JPG" "$DEST_WALLPAPER"
-    if [ $? -ne 0 ]; then
+    echo ":: Copying wallpaper to SDDM theme..."
+    if ! sudo cp "$TEMP_JPG" "$DEST_WALLPAPER"; then
         echo "ERROR: Failed to copy wallpaper to SDDM theme background."
         rm -f "$TEMP_JPG"
         return 1
@@ -195,18 +195,18 @@ figlet -f smslant "xCloud SDDM"
 if ! check_sddm_installed; then
     echo ":: Status: SDDM is NOT installed."
     echo
-    if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Do you want to install SDDM?"; then
+    if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Do you want to install SDDM?"; then
         install_sddm
         
         if check_sddm_installed; then
             echo ":: SDDM installed successfully!"
             
-            if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Do you want to activate SDDM now?"; then
+            if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Do you want to activate SDDM now?"; then
                 activate_sddm
                 echo ":: SDDM Activated."
             fi
             
-            if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Install the special xCloud SDDM Theme?"; then
+            if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Install the special xCloud SDDM Theme?"; then
                 install_theme
             fi
         else
@@ -222,12 +222,12 @@ if ! check_sddm_installed; then
 elif ! check_sddm_active; then
     echo ":: SDDM is installed but NOT active."
     echo
-    if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Do you want to activate SDDM?"; then
+    if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Do you want to activate SDDM?"; then
         activate_sddm
         echo ":: SDDM Activated."
     fi
     
-    if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Install the special xCloud SDDM Theme?"; then
+    if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Install the special xCloud SDDM Theme?"; then
         install_theme
     fi
 
@@ -236,7 +236,7 @@ else
     echo ":: SDDM is installed and active."
     echo
     # Using gum choose for multiple options in this state
-    ACTION=$(gum choose --selected.background=$primarycolor --selected.foreground=$onprimarycolor "Install xCloud Theme" "Copy Wallpaper to SDDM" "Deactivate SDDM" "Exit")
+    ACTION=$(gum choose --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" "Install xCloud Theme" "Copy Wallpaper to SDDM" "Deactivate SDDM" "Exit")
     
     case $ACTION in
         "Install xCloud Theme")
@@ -246,7 +246,7 @@ else
             copy_wallpaper_to_sddm
             ;;
         "Deactivate SDDM")
-            if gum confirm --selected.background=$primarycolor --selected.foreground=$onprimarycolor --prompt.foreground=$onsurfacecolor "Are you sure you want to deactivate SDDM?"; then
+            if gum confirm --selected.background="$primarycolor" --selected.foreground="$onprimarycolor" --prompt.foreground="$onsurfacecolor" "Are you sure you want to deactivate SDDM?"; then
                 deactivate_sddm
             fi
             ;;
@@ -260,4 +260,4 @@ fi
 # Finishing
 echo
 echo ":: Installation complete! Press [ENTER] to close."
-read
+read -r

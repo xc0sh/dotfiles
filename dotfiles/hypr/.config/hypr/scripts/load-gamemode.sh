@@ -7,6 +7,7 @@
 # 
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 
 _loadGameMode() {
@@ -20,7 +21,7 @@ _loadGameMode() {
         keyword decoration:rounding 0"
 }
 
-if [ -f $HOME/.config/xcloud/settings/gamemode-enabled ]; then
+if [ -f "$HOME"/.config/xcloud/settings/gamemode-enabled ]; then
     _loadGameMode
     notify_user --a "System" \
         --i "joystick" \

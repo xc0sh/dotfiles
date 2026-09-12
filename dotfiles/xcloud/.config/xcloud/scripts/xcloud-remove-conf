@@ -36,14 +36,14 @@ if gum confirm "Do you want to proceed?" ;then
         fi
     done
 
-    if [ -f $HOME/.config/hypr/keyboard.conf ]; then
+    if [ -f "$HOME"/.config/hypr/keyboard.conf ]; then
         echo "Cleaning: $HOME/.config/hypr/keyboard.conf"
-        rm $HOME/.config/hypr/keyboard.conf
+        rm "$HOME"/.config/hypr/keyboard.conf
     fi 
 
-    if [ -f $HOME/.config/hypr/hyprland.conf ]; then
+    if [ -f "$HOME"/.config/hypr/hyprland.conf ]; then
         echo "Cleaning: $HOME/.config/hypr/hyprland.conf"
-        rm $HOME/.config/hypr/hyprland.conf
+        rm "$HOME"/.config/hypr/hyprland.conf
     fi 
 
     echo "-----------------------------------"

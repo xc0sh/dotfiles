@@ -21,6 +21,7 @@ fi
 # Generate path
 eval screenshot_folder="$SAVE_DIR"
 eval filename="$SAVE_FILENAME"
+# shellcheck disable=SC2154 # both assigned above via eval, opaque to static analysis
 path="$screenshot_folder/$filename"
 
 # Get image format
@@ -115,6 +116,6 @@ DELAY_CHOICE=$(echo -e "0s\n2s\n5s\n10s" | fzf \
 [ -z "$DELAY_CHOICE" ] && exit 0
 
 # Strip the 's' from the delay choice (e.g., "5s" -> "5")
-CLEAN_DELAY=$(echo "$DELAY_CHOICE" | sed 's/s//')
+CLEAN_DELAY="${DELAY_CHOICE//s/}"
 
 take_screenshot "$MODE_CHOICE" "$CLEAN_DELAY"

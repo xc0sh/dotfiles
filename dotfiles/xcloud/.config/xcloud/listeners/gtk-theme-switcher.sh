@@ -29,9 +29,9 @@ apply_theme() {
     fi
 
     # Determine matugen binary path
-    if [ -f $HOME/.cargo/bin/matugen ]; then
+    if [ -f "$HOME"/.cargo/bin/matugen ]; then
         MATUGEN_BIN="$HOME/.cargo/bin/matugen"
-    elif [ -f $HOME/.local/bin/matugen ]; then
+    elif [ -f "$HOME"/.local/bin/matugen ]; then
         MATUGEN_BIN="$HOME/.local/bin/matugen"
     else
         MATUGEN_BIN="matugen"
@@ -55,14 +55,14 @@ apply_theme() {
         echo "Quickshell Theme updated"
 
         # Update xCloud Dotfiles Settings theme
-        qs -p $HOME/.local/share/xcloud-dotfiles-settings/quickshell ipc call theme-manager reload
+        qs -p "$HOME"/.local/share/xcloud-dotfiles-settings/quickshell ipc call theme-manager reload
         echo "xCloud Dotfiles Settings Theme updated"
 
         # Reload Waybar
         nohup bash -c "$HOME/.config/waybar/launch.sh" > /dev/null 2>&1 &
         disown
 
-        $HOME/.config/hypr/scripts/gtk.sh &
+        "$HOME"/.config/hypr/scripts/gtk.sh &
 
         swaync-client -rs
     elif [[ "$THEME_PREF" == "0" || "$THEME_PREF" == "false" ]]; then
@@ -77,7 +77,7 @@ apply_theme() {
         nohup bash -c "$HOME/.config/waybar/launch.sh" > /dev/null 2>&1 &
         disown
 
-        $HOME/.config/hypr/scripts/gtk.sh &
+        "$HOME"/.config/hypr/scripts/gtk.sh &
 
         swaync-client -rs
     else
@@ -85,7 +85,10 @@ apply_theme() {
     fi
 }
 
-# Loop indefinitely, reading output from inotifywait
+# Loop indefinitely, reading output from inotifywait. dir/events are
+# positional placeholders required by inotifywait's 3-field output format;
+# only filename is actually used below.
+# shellcheck disable=SC2034
 inotifywait -m -q -e close_write,moved_to "$SETTINGS_DIR" | while read -r dir events filename; do
     if [[ "$filename" == "$SETTINGS_BASENAME" ]]; then
         echo "Change detected in $SETTINGS_FILE. Re-applying theme..."

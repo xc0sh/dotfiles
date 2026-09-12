@@ -4,11 +4,14 @@
 # ------------------------------------------------------
 
 vercomp() {
-    if [[ $1 == $2 ]]; then
+    if [[ "$1" == "$2" ]]; then
         return 0
     fi
     local IFS=.
-    local i ver1=($1) ver2=($2)
+    local i
+    local -a ver1 ver2
+    read -ra ver1 <<< "$1"
+    read -ra ver2 <<< "$2"
     # fill empty fields in ver1 with zeros
     for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
         ver1[i]=0
@@ -25,13 +28,13 @@ vercomp() {
 }
 
 testvercomp() {
-    vercomp $1 $2
+    vercomp "$1" "$2"
     case $? in
         0) op='=' ;;
         1) op='>' ;;
         2) op='<' ;;
     esac
-    if [[ $op != $3 ]]; then
+    if [[ $op != "$3" ]]; then
         # No update available
         echo "1"
     else
@@ -46,10 +49,12 @@ get_latest_release() {
     local url="https://api.github.com/repos/$repo/releases/latest"
     
     # Fetch data
-    local response=$(curl -s "$url")
-    
+    local response
+    response=$(curl -s "$url")
+
     # Extract tag (e.g., "v2.9.8")
-    local tag=$(echo "$response" | jq -r .tag_name)
+    local tag
+    tag=$(echo "$response" | jq -r .tag_name)
 
     # Validate
     if [ "$tag" == "null" ] || [ -z "$tag" ]; then
@@ -60,4 +65,4 @@ get_latest_release() {
 
 REMOTE_TAG=$(get_latest_release "xc0sh/dotfiles")
 version=$(jq -r '.Version' ~/.config/xcloud/version/version.json)
-testvercomp $version $REMOTE_TAG "<"
+testvercomp "$version" "$REMOTE_TAG" "<"

@@ -11,7 +11,9 @@ FLATPAK_SYM="󰏖"  # Distinct icon for all Flatpaks
 FLATPAK_ICON="$FLATPAK_SYM "  # Distinct icon for all Flatpaks
 
 # --- 1. Collect Standard Apps (AWK) ---
-LIST=$(find -L "${DIRS[@]}" -name "*.desktop" -type f 2>/dev/null | xargs awk -F'=' -v inc_term="$INCLUDE_TERMINAL_APPS" '
+# shellcheck disable=SC2016 # single-quoted awk script: $0/$1 etc. are awk's own
+# field variables and must NOT be shell-expanded
+LIST=$(find -L "${DIRS[@]}" -name "*.desktop" -type f -print0 2>/dev/null | xargs -0 awk -F'=' -v inc_term="$INCLUDE_TERMINAL_APPS" '
     function print_entry() {
         if (name != "" && exec != "") {
             if (inc_term == "true" || is_term != "true") {
@@ -55,6 +57,6 @@ SELECTED=$(echo "$LIST" | grep . | sort -u | fzf \
 # --- 4. Launch ---
 if [ -n "$SELECTED" ]; then
     CMD=$(echo "$SELECTED" | cut -d'|' -f2 | xargs)
-    setsid $CMD >/dev/null 2>&1 &
+    setsid "$CMD" >/dev/null 2>&1 &
     exit 0
 fi

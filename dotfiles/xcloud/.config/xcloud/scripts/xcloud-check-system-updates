@@ -15,10 +15,12 @@ _checkCommandExists() {
 script_name=$(basename "$0")
 
 # Count the instances
+# shellcheck disable=SC2009,SC2126 # pgrep/grep -c would count/match differently
+# here; kept as-is rather than risk changing the self-exclusion (grep -v $$) behavior
 instance_count=$(ps aux | grep -F "$script_name" | grep -v grep | grep -v $$ | wc -l)
 
-if [ $instance_count -gt 1 ]; then
-    sleep $instance_count
+if [ "$instance_count" -gt 1 ]; then
+    sleep "$instance_count"
 fi
 
 
@@ -71,7 +73,7 @@ if _checkCommandExists "pacman"; then
     
 # Fedora
 elif _checkCommandExists "dnf"; then
-    updates=$(dnf check-update -q | grep -c ^[a-z0-9])
+    updates=$(dnf check-update -q | grep -c '^[a-z0-9]')
 # Others
 else
     updates=0

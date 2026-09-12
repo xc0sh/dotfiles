@@ -2,23 +2,23 @@
 # xCloud Theme Glass
 
 # Set waybar
-echo "/xcloud-transparent-centered;/xcloud-transparent-centered/default" > $HOME/.config/xcloud/settings/waybar-theme.sh
-$HOME/.config/waybar/launch.sh &
+echo "/xcloud-transparent-centered;/xcloud-transparent-centered/default" > "$HOME"/.config/xcloud/settings/waybar-theme.sh
+"$HOME"/.config/waybar/launch.sh &
 
 # Set swaync
-echo '@import "themes/glass/style.css";' > $HOME/.config/swaync/style.css
+echo '@import "themes/glass/style.css";' > "$HOME"/.config/swaync/style.css
 swaync-client -rs
 
 # Set launcher
-echo 'rofi' > $HOME/.config/xcloud/settings/launcher
+echo 'rofi' > "$HOME"/.config/xcloud/settings/launcher
 
 # Set walker theme
-echo 'glass' > $HOME/.config/xcloud/settings/walker-theme
+echo 'glass' > "$HOME"/.config/xcloud/settings/walker-theme
 
 # Set Window Border
-echo -e 'local name = "transparent.lua"\nload_variant(name,"windows")' > $HOME/.config/hypr/conf/window.lua
+echo -e 'local name = "transparent.lua"\nload_variant(name,"windows")' > "$HOME"/.config/hypr/conf/window.lua
 
 # Set rofi
-echo '* { border-width: 1px; }' > $HOME/.config/xcloud/settings/rofi-border.rasi
+echo '* { border-width: 1px; }' > "$HOME"/.config/xcloud/settings/rofi-border.rasi
 
 echo ":: Theme set to Transparent"

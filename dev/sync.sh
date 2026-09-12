@@ -32,7 +32,7 @@ for arg in "$@"; do
 done
 
 # Find the first file ending with .dotinst in the current directory
-FULL_PATH=$(find $SCRIPT_DIR -maxdepth 1 -type f -name "*.dotinst" -print -quit)
+FULL_PATH=$(find "$SCRIPT_DIR" -maxdepth 1 -type f -name "*.dotinst" -print -quit)
 if [ -n "$FULL_PATH" ]; then
     FIRST_FILE="${FULL_PATH##*/}" # Strips path prefix, leaving only the filename
     echo ":: .dotinst: $FIRST_FILE"
@@ -66,22 +66,27 @@ echo
 # --- Sync ---
 
 run_sync() {
-    # Construct the base rsync command flags
-    RSYNC_CMD="rsync -azv --delete --exclude=config.dotinst $DRY_RUN_FLAG"
+    # Construct the base rsync command as an array, not a string -- avoids the
+    # eval-of-a-built-string pattern shellcheck flags as SC2089/SC2090 (quotes
+    # inside a plain variable aren't respected the way a string built this way
+    # implies), and sidesteps SC2086 without changing DRY_RUN_FLAG's intended
+    # "empty means no flag" behavior.
+    rsync_cmd=(rsync -azv --delete --exclude=config.dotinst)
+    [ -n "$DRY_RUN_FLAG" ] && rsync_cmd+=("$DRY_RUN_FLAG")
 
     # Add the exclude-from option if the file exists
     if [ -f "$EXCLUDE_FILE" ]; then
         echo ":: Protected file list ($EXCLUDE_FILE) detected and will be used."
-        RSYNC_CMD="$RSYNC_CMD --exclude-from=\"$EXCLUDE_FILE\""
+        rsync_cmd+=(--exclude-from="$EXCLUDE_FILE")
     fi
 
     if [ -n "$DRY_RUN_FLAG" ]; then
-        echo :: rsync command: $RSYNC_CMD "$SOURCE_DIR/" "$TARGET_DIR"
+        echo ":: rsync command: ${rsync_cmd[*]} $SOURCE_DIR/ $TARGET_DIR"
         echo
     fi
 
     # Execute the final rsync command
-    eval $RSYNC_CMD "$SOURCE_DIR/" "$TARGET_DIR"
+    "${rsync_cmd[@]}" "$SOURCE_DIR/" "$TARGET_DIR"
 
     if [ -n "$DRY_RUN_FLAG" ]; then
         echo

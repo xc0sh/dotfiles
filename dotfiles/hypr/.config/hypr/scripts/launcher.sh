@@ -3,11 +3,11 @@
 # -----------------------------------------------------
 # Load Launcher
 # -----------------------------------------------------
-launcher=$(cat $HOME/.config/xcloud/settings/launcher)
+launcher=$(cat "$HOME"/.config/xcloud/settings/launcher)
 
 # Use Walker
 _launch_walker() {
-    $HOME/.config/walker/launch.sh --height 500
+    "$HOME"/.config/walker/launch.sh --height 500
 }
 
 # Use Rofi

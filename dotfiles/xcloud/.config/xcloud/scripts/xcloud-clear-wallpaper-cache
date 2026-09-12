@@ -12,9 +12,9 @@ info() { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
-if [ -d $CACHE_FOLDER ]; then
-    rm  -rf $CACHE_FOLDER
-    mkdir -p $CACHE_FOLDER
+if [ -d "$CACHE_FOLDER" ]; then
+    rm  -rf "$CACHE_FOLDER"
+    mkdir -p "$CACHE_FOLDER"
     info "Restore Default Wallpaper"
-    $HOME/.config/xcloud/scripts/xcloud-wallpaper $HOME/Pictures/wallpaper/forest2.jpg
+    "$HOME"/.config/xcloud/scripts/xcloud-wallpaper "$HOME"/Pictures/wallpaper/forest2.jpg
 fi

@@ -40,15 +40,18 @@ case $extension in
 esac
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 APP_NAME="Screen Capture"
 NOTIFICATION_ICON="camera-photo-symbolic"
 
 # Screenshot Editor
-export GRIMBLAST_EDITOR="$(cat ~/.config/xcloud/settings/screenshot-editor)"
+GRIMBLAST_EDITOR="$(cat ~/.config/xcloud/settings/screenshot-editor)"
+export GRIMBLAST_EDITOR
 
 # Quick instant mode: full screen
 take_instant_full() {
+    # shellcheck disable=SC2154 # screenshot_folder assigned above via eval, opaque to static analysis
     grim -t "$image_format" "$NAME" && notify_user \
         --a "${APP_NAME}" \
         --i "${NOTIFICATION_ICON}" \
@@ -111,9 +114,6 @@ option_time_4="30s"
 option_time_5="60s"
 #option_time_4="Custom (in seconds)" # Roadmap or someone contribute :)
 
-list_col='1'
-list_row='2'
-
 copy='Copy'
 save='Save'
 copy_save='Copy & Save'
@@ -142,6 +142,7 @@ timer_exit() {
 }
 
 # Confirm and execute
+# shellcheck disable=SC2120 # optional callback arg, like copy_save_editor_run below; not every caller uses it
 timer_run() {
     selected_timer="$(timer_exit)"
     if [[ "$selected_timer" == "$option_time_1" ]]; then
@@ -178,6 +179,7 @@ type_screenshot_exit() {
 }
 
 # Confirm and execute
+# shellcheck disable=SC2120 # optional callback arg, like copy_save_editor_run below; not every caller uses it
 type_screenshot_run() {
     selected_type_screenshot="$(type_screenshot_exit)"
     if [[ "$selected_type_screenshot" == "$option_capture_1" ]]; then
@@ -258,10 +260,10 @@ timer() {
 # take shots
 takescreenshot() {
     sleep 1
-    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" $NAME
-    if [ -f $HOME/$NAME ]; then
-        if [ -d $screenshot_folder ]; then
-            mv $HOME/$NAME $screenshot_folder/
+    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" "$NAME"
+    if [ -f "$HOME"/"$NAME" ]; then
+        if [ -d "$screenshot_folder" ]; then
+            mv "$HOME"/"$NAME" "$screenshot_folder"/
         fi
     fi
 }
@@ -270,10 +272,10 @@ takescreenshot_timer() {
     sleep 1
     timer
     sleep 1
-    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" $NAME
-    if [ -f $HOME/$NAME ]; then
-        if [ -d $screenshot_folder ]; then
-            mv $HOME/$NAME $screenshot_folder/
+    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" "$NAME"
+    if [ -f "$HOME"/"$NAME" ]; then
+        if [ -d "$screenshot_folder" ]; then
+            mv "$HOME"/"$NAME" "$screenshot_folder"/
         fi
     fi
 }
@@ -293,10 +295,10 @@ run_cmd() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-    $option_1)
+    "$option_1")
         run_cmd --opt1
         ;;
-    $option_2)
+    "$option_2")
         run_cmd --opt2
         ;;
 esac

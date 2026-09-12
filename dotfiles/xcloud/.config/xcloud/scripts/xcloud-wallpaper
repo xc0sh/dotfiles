@@ -66,9 +66,11 @@ apply_effect() {
     EFFECT=$(cat "$SETTINGS_WALLPAPER_EFFECT")
     [ "$EFFECT" = "off" ] && return
     info "Applying wallpaper effect: $EFFECT"
-    local cached="$CACHE_FOLDER/$EFFECT-$(basename "$IMAGE_PATH")"
+    local cached
+    cached="$CACHE_FOLDER/$EFFECT-$(basename "$IMAGE_PATH")"
     [ ! -f "$cached" ] && cp "$IMAGE_PATH" "$cached"
     IMAGE_PATH="$cached"
+    # shellcheck disable=SC1090 # path depends on $EFFECT, resolved at runtime
     source "$HOME/.config/hypr/effects/wallpaper/$EFFECT"
 }
 
@@ -85,18 +87,21 @@ wait_for_awww() {
 }
 
 set_wallpaper() {
-    local awww_crop_gravity_args
+    # Built as an array, not a string, so an empty case contributes zero
+    # arguments rather than one empty-string argument once expanded below.
+    local awww_args=()
     if [ "$SKIP_WALLPAPER" = true ]; then
         info "Wallpaper set skipped"
         return
     fi
-    read AWWW_MINOR AWWW_PATCH <<< $(awww --version | awk -F. '{print $2 " " $3}')
-    (( $AWWW_MINOR > 12 || $AWWW_MINOR == 12 && $AWWW_PATCH > 0 )) \
-        && awww_crop_gravity_args="--resize crop --crop-gravity $AWWW_CROP_GRAVITY" \
-        || awww_crop_gravity_args=""
+    read -r AWWW_MINOR AWWW_PATCH <<< "$(awww --version | awk -F. '{print $2 " " $3}')"
+    if (( AWWW_MINOR > 12 || (AWWW_MINOR == 12 && AWWW_PATCH > 0) )); then
+        awww_args+=(--resize crop --crop-gravity "$AWWW_CROP_GRAVITY")
+    fi
+    [ -n "$MONITOR_OUTPUT" ] && awww_args+=(-o "$MONITOR_OUTPUT")
     info "Setting wallpaper: $IMAGE_PATH${MONITOR_OUTPUT:+ on monitor $MONITOR_OUTPUT}"
     local max=30 count=0
-    until awww img "$IMAGE_PATH" ${MONITOR_OUTPUT:+-o $MONITOR_OUTPUT} $awww_crop_gravity_args --transition-type "$SETTINGS_TRANSITION_EFFECT" 2>/dev/null; do
+    until awww img "$IMAGE_PATH" "${awww_args[@]}" --transition-type "$SETTINGS_TRANSITION_EFFECT" 2>/dev/null; do
         (( count++ ))
         if (( count >= max )); then
             error "Failed to set wallpaper after ${max}s (no valid outputs)"

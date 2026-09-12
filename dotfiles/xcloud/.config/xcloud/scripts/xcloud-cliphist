@@ -9,9 +9,9 @@
 # -----------------------------------------------------
 # Load Launcher
 # -----------------------------------------------------
-launcher=$(cat $HOME/.config/xcloud/settings/launcher)
+launcher=$(cat "$HOME"/.config/xcloud/settings/launcher)
 if [ "$launcher" == "walker" ]; then
-    $HOME/.config/walker/launch.sh -m clipboard -N -H
+    "$HOME"/.config/walker/launch.sh -m clipboard -N -H
 else
     case $1 in
         d)

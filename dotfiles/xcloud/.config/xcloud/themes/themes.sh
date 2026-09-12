@@ -5,7 +5,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # -----------------------------------------------------
 # Load Launcher
 # -----------------------------------------------------
-launcher=$(cat $HOME/.config/xcloud/settings/launcher)
+launcher=$(cat "$HOME"/.config/xcloud/settings/launcher)
 
 # -----------------------------------------------------
 # Themes
@@ -22,7 +22,7 @@ fi
 # -----------------------------------------------------
 
 if [ "$launcher" == "walker" ]; then
-    selected_theme=$($HOME/.config/walker/launch.sh -d -N -H -p "Search Theme" <<<"$THEME_OPTIONS")
+    selected_theme=$("$HOME"/.config/walker/launch.sh -d -N -H -p "Search Theme" <<<"$THEME_OPTIONS")
 else
     selected_theme=$(rofi -dmenu -replace -config ~/.config/rofi/config-themes.rasi -i -no-show-icons -l 5 -width 30 <<<"$THEME_OPTIONS")
 fi
@@ -31,4 +31,5 @@ fi
 # Source selected theme
 # -----------------------------------------------------
 
-source $HOME/.config/xcloud/themes/$selected_theme/theme.sh
+# shellcheck disable=SC1090 # dynamic path based on the selected theme
+source "$HOME"/.config/xcloud/themes/"$selected_theme"/theme.sh

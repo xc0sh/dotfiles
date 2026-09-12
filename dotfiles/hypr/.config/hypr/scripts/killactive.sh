@@ -23,7 +23,7 @@ case "$ACTIVE_TITLE" in
         qs ipc call welcome toggle
         ;;
     "xCloud Dotfiles Settings")
-        qs -p $HOME/.local/share/xcloud-dotfiles-settings/quickshell ipc call settings toggle
+        qs -p "$HOME"/.local/share/xcloud-dotfiles-settings/quickshell ipc call settings toggle
         ;;
     *)
         # Updated for Hyprland 0.55+ Lua dispatcher syntax

@@ -9,6 +9,7 @@
 hyprctl dispatch workspaceopt allfloat
 
 # Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 
 notify_user \

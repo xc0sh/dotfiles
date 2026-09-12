@@ -13,7 +13,7 @@ NWG_DISPLAYS_BUILD_DIR=$(mktemp -d)
 git clone https://github.com/nwg-piotr/nwg-displays.git "$NWG_DISPLAYS_BUILD_DIR"
 python3 -m pip install --user --break-system-packages "$NWG_DISPLAYS_BUILD_DIR"
 info "nwg-displays installed to ~/.local/bin/"
-rm -rf $NWG_DISPLAYS_BUILD_DIR
+rm -rf "$NWG_DISPLAYS_BUILD_DIR"
 
 # --------------------------------------------------------------
 # Oh My Posh
@@ -70,25 +70,26 @@ pywalfox-install
 # Grimblast
 # --------------------------------------------------------------
 
-source $repo_path/setup/clean-install-grimblast.sh
+# shellcheck disable=SC2154 # repo_path is exported by the external installer (unforked, see README Known Limitations), not set anywhere in this repo
+source "$repo_path"/setup/clean-install-grimblast.sh
 
 # --------------------------------------------------------------
 # Cursors
 # --------------------------------------------------------------
 
-source $repo_path/setup/_cursors.sh
+source "$repo_path"/setup/_cursors.sh
 
 # --------------------------------------------------------------
 # Fonts
 # --------------------------------------------------------------
 
-source $repo_path/setup/_fonts.sh
+source "$repo_path"/setup/_fonts.sh
 
 # --------------------------------------------------------------
 # Icons
 # --------------------------------------------------------------
 
-source $repo_path/setup/_icons.sh
+source "$repo_path"/setup/_icons.sh
 
 # --------------------------------------------------------------
 # Create XDG Directories

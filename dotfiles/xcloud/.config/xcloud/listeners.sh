@@ -60,19 +60,20 @@ stop_listener() {
     echo "Attempting to stop '$script_name'..."
 
     # Find the PID of the running script
-    local pid=$(pgrep -f "$script_path")
+    local pid
+    pid=$(pgrep -f "$script_path")
 
     if [ -z "$pid" ]; then
         echo "Listener '$script_name' is not running."
         return 0
     else
         echo "Found PID(s) for '$script_name': $pid. Sending SIGTERM..."
-        kill $pid
+        kill "$pid"
         # Give it a moment to terminate gracefully
         sleep 1
         if pgrep -f "$script_path" >/dev/null; then
             echo "Listener '$script_name' did not stop gracefully. Sending SIGKILL..."
-            kill -9 $pid
+            kill -9 "$pid"
             echo "Listener '$script_name' forcefully stopped."
         else
             echo "Listener '$script_name' stopped successfully."

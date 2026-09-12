@@ -32,10 +32,10 @@ _installYay() {
     if [[ ! $(_isInstalled "git") == 0 ]]; then
         sudo pacman --noconfirm -S "git"
     fi
-    if [ -d $HOME/Downloads/yay-bin ]; then
-        rm -rf $HOME/Downloads/yay-bin
+    if [ -d "$HOME"/Downloads/yay-bin ]; then
+        rm -rf "$HOME"/Downloads/yay-bin
     fi
-    git clone https://aur.archlinux.org/yay-bin.git $HOME/Downloads/yay-bin
+    git clone https://aur.archlinux.org/yay-bin.git "$HOME"/Downloads/yay-bin
     (cd "$HOME/Downloads/yay-bin" && makepkg -si --noconfirm) 
     echo ":: yay has been installed successfully."
 }
@@ -47,10 +47,10 @@ _installParu() {
     if [[ ! $(_isInstalled "git") == 0 ]]; then
         sudo pacman --noconfirm -S "git"
     fi
-    if [ -d $HOME/Downloads/paru ]; then
-        rm -rf $HOME/Downloads/paru
+    if [ -d "$HOME"/Downloads/paru ]; then
+        rm -rf "$HOME"/Downloads/paru
     fi
-    git clone https://aur.archlinux.org/paru.git $HOME/Downloads/paru
+    git clone https://aur.archlinux.org/paru.git "$HOME"/Downloads/paru
     (cd "$HOME/Downloads/paru" && makepkg -si --noconfirm)
     echo ":: paru has been installed successfully."
 }
@@ -59,7 +59,7 @@ _selectAURHelper() {
     echo ":: Please select your preferred AUR Helper"
     echo
     aur_helper=$(gum choose "yay" "paru")
-    if [ -z $aur_helper ]; then
+    if [ -z "$aur_helper" ]; then
         _selectAURHelper
     fi
     echo ":: Using $aur_helper as AUR Helper"
