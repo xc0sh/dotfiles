@@ -12,97 +12,97 @@
 	"restore":[
 		{
 			"title":"xCloud Dotfiles Settings",
-			"source":".config/xcloud/settings",
+			"source":"xcloud/.config/xcloud/settings",
 			"value":true
 		},
 		{
 			"title":"Input",
-			"source":".config/hypr/input.lua",
+			"source":"hypr/.config/hypr/input.lua",
 			"value":true
 		},
 		{
 			"title":"Gestures",
-			"source":".config/hypr/gesture.lua",
+			"source":"hypr/.config/hypr/gesture.lua",
 			"value":true
 		},
 		{
 			"title":"Monitor Setup (NWG Displays)",
-			"source":".config/hypr/monitors.lua",
+			"source":"hypr/.config/hypr/monitors.lua",
 			"value":true
 		},
 		{
 			"title":"Hyprland GUI (HyprMod)",
-			"source":".config/hypr/hyprland-gui.lua",
+			"source":"hypr/.config/hypr/hyprland-gui.lua",
 			"value":true
 		},
 		{
 			"title":"Monitor Variant",
-			"source":".config/hypr/conf/monitor.lua",
+			"source":"hypr/.config/hypr/conf/monitor.lua",
 			"value":true
 		},
 		{
 			"title":"Hyprsunset",
-			"source":".config/hypr/hyprsunset.conf",
+			"source":"hypr/.config/hypr/hyprsunset.conf",
 			"value":true
 		},
 		{
 			"title":"Hypridle",
-			"source":".config/hypr/hypridle.conf",
+			"source":"hypr/.config/hypr/hypridle.conf",
 			"value":true
 		},
 		{
 			"title":"Keybindings",
-			"source":".config/hypr/conf/keybinding.lua",
+			"source":"hypr/.config/hypr/conf/keybinding.lua",
 			"value":true
 		},
 		{
 			"title":"Environment",
-			"source":".config/hypr/conf/environment.lua",
+			"source":"hypr/.config/hypr/conf/environment.lua",
 			"value":true
 		},
 		{
 			"title":"Layout",
-			"source":".config/hypr/conf/layout.lua",
+			"source":"hypr/.config/hypr/conf/layout.lua",
 			"value":true
 		},
 		{
 			"title":"Windowrules",
-			"source":".config/hypr/conf/windowrule.lua",
+			"source":"hypr/.config/hypr/conf/windowrule.lua",
 			"value":true
 		},
 		{
 			"title":"Animation",
-			"source":".config/hypr/conf/animation.lua",
+			"source":"hypr/.config/hypr/conf/animation.lua",
 			"value":true
 		},
 		{
 			"title":"Decoration",
-			"source":".config/hypr/conf/decoration.lua",
+			"source":"hypr/.config/hypr/conf/decoration.lua",
 			"value":true
 		},
 		{
 			"title":"Window",
-			"source":".config/hypr/conf/window.lua",
+			"source":"hypr/.config/hypr/conf/window.lua",
 			"value":true
 		},
 		{
 			"title":"Workspaces",
-			"source":".config/hypr/workspaces.lua",
+			"source":"hypr/.config/hypr/workspaces.lua",
 			"value":true
 		},
 		{
 			"title":"GTK 3",
-			"source":".config/gtk-3.0",
+			"source":"gtk-3.0/.config/gtk-3.0",
 			"value":true
 		},
 		{
 			"title":"GTK 4",
-			"source":".config/gtk-4.0",
+			"source":"gtk-4.0/.config/gtk-4.0",
 			"value":true
 		},
 		{
 			"title":"GTK 2",
-			"source":".gtkrc-2.0",
+			"source":"gtk-2.0/.gtkrc-2.0",
 			"value":true
 		}
 	]
