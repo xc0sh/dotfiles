@@ -1,0 +1,98 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck 0.11.0
+        run: |
+          # Pinned exact version -- "zero findings" is only a meaningful
+          # gate if it's checked with the same version the repo was
+          # cleaned up against, not whatever apt/ubuntu-latest ships.
+          curl -Lo shellcheck.tar.xz https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          tar xf shellcheck.tar.xz
+          sudo mv shellcheck-v0.11.0/shellcheck /usr/local/bin/
+          shellcheck --version
+
+      - name: Find real shell scripts
+        run: |
+          # By shebang, not .sh extension: dotfiles/xcloud/.config/xcloud/scripts/*
+          # has none, and dotfiles/xcloud/.config/xcloud/settings/*.sh are plain
+          # config values with no shebang (except one real exception, editor.sh) --
+          # a naive glob gets both of those wrong.
+          find . -type f -not -path './.git/*' -exec sh -c '
+            head -1 "$1" 2>/dev/null | grep -qE "^#!.*(bash|/bin/sh|/usr/bin/env sh)" && echo "$1"
+          ' _ {} \; | sed 's|^\./||' | sort > scripts.txt
+          wc -l scripts.txt
+
+      - name: Run shellcheck (known pre-existing issue excluded, reported separately below)
+        run: |
+          # setup/preflight-opensuse.sh sources a genuinely missing
+          # setup/_prebuilt.sh -- a real, pre-existing bug (not introduced by
+          # this repo's rebrand/cleanup work), left deliberately unsuppressed
+          # in the source file so it stays visible to anyone running
+          # shellcheck by hand. Excluded here only so it doesn't block every
+          # future PR on an unrelated, already-known issue; still reported
+          # (non-blocking) in the next step so it doesn't silently vanish
+          # from CI output either.
+          grep -v '^setup/preflight-opensuse.sh$' scripts.txt > scripts-gated.txt
+          shellcheck -x $(cat scripts-gated.txt)
+
+      - name: Report known pre-existing issue (non-blocking)
+        run: shellcheck -x setup/preflight-opensuse.sh || true
+
+  branding-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for stray ML4W/mylinuxforwork branding
+        run: |
+          # CREDITS.md and LICENSE carry legitimate upstream attribution.
+          # README.md legitimately mentions both terms 4 times too (the
+          # "personal fork of" line plus the Known Limitations section) --
+          # excluding only CREDITS/LICENSE would fail this job on day one.
+          if git grep -Iil -E 'ml4w|mylinuxforwork' -- ':!CREDITS.md' ':!LICENSE' ':!README.md'; then
+            echo "::error::Found stray ML4W/mylinuxforwork branding outside the allowed attribution files"
+            exit 1
+          fi
+          echo "Clean."
+
+      - name: Pin README's expected legitimate mention count
+        run: |
+          count=$(git grep -Iich -E 'ml4w|mylinuxforwork' README.md)
+          if [ "$count" != "4" ]; then
+            echo "::error::README.md now has $count ml4w/mylinuxforwork mentions, expected exactly 4 -- review whether this is a legitimate doc change or drift"
+            exit 1
+          fi
+          echo "README.md mention count OK ($count)."
+
+  stow-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stow
+        run: sudo apt-get update && sudo apt-get install -y stow
+
+      - name: Dry-run stow into a scratch HOME
+        run: |
+          # A scratch target, not a real $HOME -- a real machine's $HOME has
+          # pre-existing .bashrc/.zshrc/GTK-generated files that would cause
+          # false-positive conflicts unrelated to the package layout itself.
+          mkdir -p /tmp/stow-check
+          cd dotfiles
+          packages=$(ls -d */ | sed 's#/##')
+          stow -n -v -t /tmp/stow-check -d . $packages 2>&1 | tee /tmp/stow-out.log
+          if grep -qi 'existing target is neither' /tmp/stow-out.log || grep -qi 'conflict' /tmp/stow-out.log; then
+            echo "::error::Stow reported conflicts -- see log above"
+            exit 1
+          fi
+          echo "Clean."
