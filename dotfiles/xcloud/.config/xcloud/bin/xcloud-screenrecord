@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+# ------------------------------------------
+# CLI Screen Recording Tool
+# ------------------------------------------
+
+# --- Configuration ---
+
+# Defaults
+SAVE_DIR="$HOME/Videos"
+SAVE_FILENAME="recording_$(date +%d%m%Y_%H%M%S).mp4"
+
+# Load Settings
+if [ -f ~/.config/xcloud/settings/recording-folder ]; then
+    SAVE_DIR=$(cat ~/.config/xcloud/settings/recording-folder)
+fi
+
+# Generate path
+eval recording_folder="$SAVE_DIR"
+# shellcheck disable=SC2154 # assigned above via eval, opaque to static analysis
+path="$recording_folder/$SAVE_FILENAME"
+
+# Create Recording folder
+mkdir -p "$recording_folder"
+
+# Notifications
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
+APP_NAME="Screen Recording"
+NOTIFICATION_ICON="camera-video-symbolic"
+
+# Remembers the output path across the start/stop invocations of this script
+STATE_FILE="$HOME/.cache/xcloud/screenrecord-output"
+
+# Handle the recording
+start_recording() {
+    local mode=$1
+    local geometry=()
+
+    echo "🎥 Starting recording ($mode)..."
+
+    case $mode in
+        "fullscreen")
+            : # wf-recorder records the whole output with no -g flag
+            ;;
+        "area")
+            # slurp allows UI selection
+            GEOM=$(slurp)
+            [ -z "$GEOM" ] && exit 0 # Handle ESC/Cancel
+            geometry=(-g "$GEOM")
+            ;;
+        "window")
+            # Hyprland specific geometry
+            GEOM=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+            geometry=(-g "$GEOM")
+            ;;
+    esac
+
+    mkdir -p "$(dirname "$STATE_FILE")"
+    echo "$path" > "$STATE_FILE"
+
+    wf-recorder "${geometry[@]}" --pixel-format yuv420p -f "$path" &
+    disown
+
+    notify_user \
+        --a "$APP_NAME" \
+        --i "$NOTIFICATION_ICON" \
+        --s "Recording Started" \
+        --m "Saving to $path"
+}
+
+stop_recording() {
+    pkill -INT -x wf-recorder
+    # Give wf-recorder a moment to flush and finalize the file
+    sleep 1
+
+    local saved_path="$path"
+    if [ -f "$STATE_FILE" ]; then
+        saved_path=$(cat "$STATE_FILE")
+        rm -f "$STATE_FILE"
+    fi
+
+    echo "⏹️ Recording stopped."
+    notify_user \
+        --a "$APP_NAME" \
+        --i "$NOTIFICATION_ICON" \
+        --s "Recording Stopped" \
+        --m "Saved: $saved_path"
+}
+
+# --- Main Logic ---
+
+# Toggle: if wf-recorder is already running, stop it regardless of args.
+if pgrep -x wf-recorder > /dev/null; then
+    stop_recording
+    exit 0
+fi
+
+# Not recording -- start.
+
+# 1. Fast Mode (explicit mode argument, e.g. "area"/"window"/"fullscreen")
+if [ "$#" -ge 1 ] && [ "$1" != "toggle" ]; then
+    start_recording "$1"
+    exit 0
+fi
+
+# 2. Interactive Mode (fzf) -- used for a bare invocation and for the
+# keybind's "toggle" argument when no recording is in progress yet.
+MODE_CHOICE=$(echo -e "area\nwindow\nfullscreen" | fzf \
+    --style full \
+    --height 15% \
+    --layout reverse \
+    --border \
+    --prompt "🎥 Select Recording Mode: " \
+    --header "ESC to cancel")
+
+[ -z "$MODE_CHOICE" ] && exit 0
+
+start_recording "$MODE_CHOICE"
