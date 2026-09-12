@@ -18,6 +18,9 @@ autocmd("BufWritePre", {
   desc = "Trim trailing whitespace on save",
   pattern = "*",
   callback = function()
+    if not vim.bo.modifiable then
+      return
+    end
     local view = vim.fn.winsaveview()
     vim.cmd([[keeppatterns %s/\s\+$//e]])
     vim.fn.winrestview(view)
