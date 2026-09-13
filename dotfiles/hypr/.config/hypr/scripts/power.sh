@@ -35,6 +35,34 @@ terminate_clients() {
 		echo ":: PID $pid has terminated."
 	done
 	bash "$HOME"/.config/xcloud/listeners.sh --stopall
+	terminate_background_daemons
+}
+
+# Layer-shell surfaces and standalone daemons (waybar, the Quickshell shell,
+# swaync, hypridle, the wallpaper daemon, the cliphist watcher, the polkit
+# agent) have no toplevel window, so `hyprctl clients` never lists them --
+# the SIGTERM loop above can't reach them. Left running across a logout,
+# they hold onto sockets/D-Bus names/cursor themes that the next session's
+# copies of the same daemons then collide with, which is what actually
+# freezes a re-login rather than starting cleanly. Mirrors the `killall qs`
+# already used by xcloud-autostart on startup for the same reason.
+terminate_background_daemons() {
+	echo ":: Stopping background daemons"
+	killall qs 2>/dev/null
+	pkill -x waybar 2>/dev/null
+	pkill -x swaync 2>/dev/null
+	pkill -x hypridle 2>/dev/null
+	pkill -x awww-daemon 2>/dev/null
+	pkill -x wl-paste 2>/dev/null
+	pkill -f polkit-gnome-authentication-agent 2>/dev/null
+	# Same class of gap: these are long-running background loops (wallpaper
+	# rotation, day/night hyprsunset scheduling, coffee mode's re-enable
+	# timer) with no toplevel window either, and logind's default
+	# KillUserProcesses=no means they'd otherwise survive a logout.
+	pkill -f xcloud-wallpaper-automation 2>/dev/null
+	pkill -f xcloud-hyprsunset-scheduler 2>/dev/null
+	pkill -f xcloud-coffee-mode 2>/dev/null
+	return 0
 }
 
 if [[ "$1" == "exit" ]]; then

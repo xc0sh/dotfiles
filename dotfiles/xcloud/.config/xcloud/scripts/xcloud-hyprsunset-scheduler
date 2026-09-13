@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Day/night hyprsunset scheduling: while enabled, checks the clock every 5
+# minutes and starts/stops hyprsunset to match, instead of relying on the
+# manual toggle (xcloud-toggle-hyprsunset / waybar's custom/hyprshade module).
+#
+# Usage:
+#   xcloud-hyprsunset-scheduler   Toggle the scheduler on/off (same on/off
+#                                 marker-file pattern as xcloud-wallpaper-automation)
+
+xcloud_cache_folder="$HOME/.cache/xcloud/hyprland-dotfiles"
+MARKER="$xcloud_cache_folder/hyprsunset-scheduler"
+
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
+APP_NAME="Hyprsunset Scheduler"
+
+DAY_START=7
+NIGHT_START=19
+[ -f ~/.config/xcloud/settings/hyprsunset-day-start ] && DAY_START=$(cat ~/.config/xcloud/settings/hyprsunset-day-start)
+[ -f ~/.config/xcloud/settings/hyprsunset-night-start ] && NIGHT_START=$(cat ~/.config/xcloud/settings/hyprsunset-night-start)
+
+# Apply hyprsunset state for the current hour, without fighting a state
+# that's already correct (avoids flicker/log spam every 5-minute check).
+_apply_for_time() {
+    local hour
+    hour=$((10#$(date +%H))) # strip leading zero so e.g. "08" isn't read as octal
+
+    local want_night=0
+    { [ "$hour" -lt "$DAY_START" ] || [ "$hour" -ge "$NIGHT_START" ]; } && want_night=1
+
+    if [ "$want_night" -eq 1 ]; then
+        pgrep -x hyprsunset >/dev/null || hyprsunset &
+    else
+        pgrep -x hyprsunset >/dev/null && pkill -x hyprsunset
+    fi
+}
+
+mkdir -p "$xcloud_cache_folder"
+
+# $MARKER is a pidfile, not just a flag -- lets us tell "scheduler running"
+# apart from "marker left behind by a reboot that killed the loop but not
+# the file" (kill -0 fails on a stale/nonexistent pid either way).
+if [ -f "$MARKER" ] && kill -0 "$(cat "$MARKER")" 2>/dev/null; then
+    kill "$(cat "$MARKER")" 2>/dev/null
+    rm -f "$MARKER"
+    notify_user \
+        --a "${APP_NAME}" \
+        --s "Scheduler stopped" \
+        --m "Auto day/night screen warmth disabled." \
+        --t 3000
+else
+    echo $$ > "$MARKER"
+    notify_user \
+        --a "${APP_NAME}" \
+        --s "Scheduler started" \
+        --m "Day starts ${DAY_START}:00, night starts ${NIGHT_START}:00." \
+        --t 3000
+    while [ -f "$MARKER" ] && [ "$(cat "$MARKER" 2>/dev/null)" = "$$" ]; do
+        _apply_for_time
+        sleep 300
+    done
+fi

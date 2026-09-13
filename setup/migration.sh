@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# shellcheck source=setup/_common.sh
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)/_common.sh"
+
 # Move nvim folder to .config
 NVIM_DIR="$HOME/.config/nvim"
 if [ -L "$NVIM_DIR" ]; then

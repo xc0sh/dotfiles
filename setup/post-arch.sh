@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# shellcheck source=setup/_common.sh
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)/_common.sh"
+
 # --------------------------------------------------------------
 # Oh My Posh
 # --------------------------------------------------------------
@@ -23,14 +26,11 @@ bash <(curl -s https://raw.githubusercontent.com/xc0sh/xcloud-quickshell-overvie
 
 echo ":: Installing packages with pipx"
 pipx install pywalfox
-pywalfox-install
-
-# --------------------------------------------------------------
-# Grimblast
-# --------------------------------------------------------------
-
-# shellcheck disable=SC2154 # repo_path is exported by the external installer (unforked, see README Known Limitations), not set anywhere in this repo
-pacman -Qi grimblast-git &>/dev/null || source "$repo_path"/setup/clean-install-grimblast.sh
+# pipx symlinks into ~/.local/bin, which isn't guaranteed to already be on
+# PATH in the shell this script is sourced from -- ensure it's there so the
+# binary just installed above can actually be found on the next line.
+export PATH="$HOME/.local/bin:$PATH"
+pywalfox install
 
 # --------------------------------------------------------------
 # Cursors

@@ -16,10 +16,25 @@ FloatingWindow {
     // --- Guard property for the flatpak app ---
     property bool isHyprlandSettingsInstalled: false
 
+    // --- Dotfiles version, read from the single source of truth so this
+    // --- never drifts from CHANGELOG.md / version.json again ---
+    property string dotfilesVersion: "..."
+
     IpcHandler {
         target: "welcome"
         function toggle(): void {
             root.visible = !root.visible
+        }
+    }
+
+    Process {
+        command: ["bash", "-c", "jq -r .Version " + Quickshell.env("HOME") + "/.config/xcloud/version.json"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var v = this.text.trim()
+                if (v !== "") root.dotfilesVersion = v
+            }
         }
     }
 
@@ -253,13 +268,13 @@ FloatingWindow {
                     } 
                 }
                 xCloudMenuSeparator {}
-                xCloudMenuItem { text: qsTr("Hyprland Homepage"); onClicked: { 
-                    Quickshell.execDetached(["xdg-open", "https://github.com/xc0sh/wallpapers"]) 
-                    } 
+                xCloudMenuItem { text: qsTr("Hyprland Homepage"); onClicked: {
+                    Quickshell.execDetached(["xdg-open", "https://hypr.land"])
+                    }
                 }
-                xCloudMenuItem { text: qsTr("Hyprland Wiki"); onClicked: { 
-                    Quickshell.execDetached(["xdg-open", "https://github.com/xc0sh/wallpapers"]) 
-                    } 
+                xCloudMenuItem { text: qsTr("Hyprland Wiki"); onClicked: {
+                    Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"])
+                    }
                 }
                 xCloudMenuItem { text: qsTr("Update xCloud Dotfiles"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://xcloud.gg/os/getting-started/update"]) 
@@ -313,7 +328,7 @@ FloatingWindow {
 
                     Image {
                         Layout.alignment: Qt.AlignHCenter
-                        source: "../shared/xcloud.svg"
+                        source: "../shared/xcloud-full-logo.png"
                         sourceSize.width: 100 
                         sourceSize.height: 100
                         width: 100
@@ -333,7 +348,7 @@ FloatingWindow {
 
                     Text {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "Version 2.15.1"
+                        text: "Version " + root.dotfilesVersion
                         font.family: Theme.fontFamily
                         font.pixelSize: 16
                         color: Theme.on_background

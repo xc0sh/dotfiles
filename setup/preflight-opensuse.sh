@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# shellcheck source=setup/_common.sh
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)/_common.sh"
+
 # --------------------------------------------------------------
 # Oh My Posh
 # --------------------------------------------------------------
@@ -10,12 +13,11 @@ curl -s https://ohmyposh.dev/install.sh | bash -s -- -d ~/.local/bin
 # Prebuild Packages
 # --------------------------------------------------------------
 
-# shellcheck disable=SC2154 # repo_path is exported by the external installer (unforked, see README Known Limitations), not set anywhere in this repo
 # shellcheck source=/dev/null
-if [ -n "${repo_path:-}" ] && [ -f "$repo_path/setup/_prebuilt.sh" ]; then
+if [ -f "$repo_path/setup/_prebuilt.sh" ]; then
     source "$repo_path"/setup/_prebuilt.sh
 else
-    echo "warning: setup/_prebuilt.sh not found (unforked installer app not present) -- skipping prebuilt package step" >&2
+    echo "warning: setup/_prebuilt.sh not found -- skipping prebuilt package step (see README Known Limitations)" >&2
 fi
 
 # --------------------------------------------------------------

@@ -175,7 +175,7 @@
       "file": "~/.config/xcloud/settings/wallpaper-app",
       "type": "choose",
       "mode": "overwrite",
-      "default": "quickshell",
+      "default": "waypaper",
       "options": ["quickshell", "waypaper"]
     },{
       "name": "Default Terminal",
@@ -208,7 +208,7 @@
       "file": "~/.config/xcloud/settings/filemanager",
       "type": "textfield",
       "mode": "overwrite",
-      "default": "yazi"
+      "default": "nautilus --new-window"
     },{
       "name": "Default Network Manager",
       "id": "default_networkmanager",
@@ -242,13 +242,13 @@
       "mode": "overwrite",
       "default": "flatpak run org.gnome.Calculator"
     },{
-      "name": "Default Screenshot Editor",
-      "id": "default_screenshoteditor",
-      "instructions": "Enter the command to execute the screenshot editor",
-      "file": "~/.config/xcloud/settings/screenshot-editor",
+      "name": "Default Calendar",
+      "id": "default_calendar",
+      "instructions": "Enter the command to execute the calendar app",
+      "file": "~/.config/xcloud/settings/calendar",
       "type": "textfield",
       "mode": "overwrite",
-      "default": "pinta"
+      "default": "gnome-calendar"
     },{
       "name": "Default Systemmonitor",
       "id": "default_systemmonitor",

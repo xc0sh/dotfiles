@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+#   ___       __  __         __  __         __
+#  / _ \___  / _// _/__ ___ / /_/ /  ___  ___/ /__
+# / ___/ _ \/ _// _// -_) -_) __/ _ \/ _ \/ _  / -_)
+#/_/   \___/_/ /_/  \__/\__/\__/_//_/\___/\__/\__/
+#
+# Temporarily suppress hypridle (screen lock) for a set number of minutes,
+# then automatically restore it -- unlike the plain on/off toggle
+# (hypr/scripts/hypridle.sh, wired to the sidebar's Hypridle switch), this
+# doesn't require remembering to turn it back on.
+#
+# Usage:
+#   xcloud-coffee-mode [minutes]   Suppress hypridle for <minutes> (default 10)
+#   xcloud-coffee-mode cancel      Cancel any pending timer and restore hypridle now
+#   xcloud-coffee-mode status      Print remaining minutes, or "off" if not active
+
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
+
+CACHE_DIR="$HOME/.cache/xcloud/hyprland-dotfiles"
+mkdir -p "$CACHE_DIR"
+TIMER_PID_FILE="$CACHE_DIR/coffee-mode.pid"
+UNTIL_FILE="$CACHE_DIR/coffee-mode.until"
+APP_NAME="xCloud Coffee Mode"
+
+# Kill any previously-scheduled re-enable timer from an earlier invocation,
+# so repeated calls extend the suppression instead of stacking multiple
+# timers that could each try to restart hypridle independently.
+cancel_pending_timer() {
+    if [ -f "$TIMER_PID_FILE" ]; then
+        pid=$(cat "$TIMER_PID_FILE")
+        kill "$pid" 2>/dev/null
+        rm -f "$TIMER_PID_FILE" "$UNTIL_FILE"
+    fi
+}
+
+case "$1" in
+    cancel)
+        cancel_pending_timer
+        pgrep -x hypridle >/dev/null || hypridle &
+        notify_user --a "$APP_NAME" --s "Coffee mode ended" --m "hypridle re-enabled" --t 3000
+        ;;
+    status)
+        if [ -f "$UNTIL_FILE" ]; then
+            remaining=$(( ($(cat "$UNTIL_FILE") - $(date +%s)) / 60 ))
+            [ "$remaining" -gt 0 ] && echo "${remaining}m" || echo "off"
+        else
+            echo "off"
+        fi
+        ;;
+    ""|*[!0-9]*)
+        if [ -n "$1" ] && [ "$1" != "" ]; then
+            echo "Usage: $0 [minutes] | cancel | status" >&2
+            exit 1
+        fi
+        minutes=10
+        ;&
+    *)
+        minutes="${minutes:-$1}"
+        cancel_pending_timer
+
+        pgrep -x hypridle >/dev/null && killall hypridle
+
+        date -d "+${minutes} minutes" +%s > "$UNTIL_FILE" 2>/dev/null || \
+            echo $(( $(date +%s) + minutes * 60 )) > "$UNTIL_FILE"
+
+        (
+            # Poll wall-clock time rather than a single sleep -- `sleep`
+            # counts monotonic time, which doesn't advance across suspend,
+            # so a plain `sleep $((minutes*60))` would leave hypridle
+            # suppressed well past UNTIL_FILE's deadline after a resume.
+            while [ "$(date +%s)" -lt "$(cat "$UNTIL_FILE")" ]; do
+                sleep 30
+            done
+            # Only restart hypridle if it's still down for this reason --
+            # if the user already re-enabled it manually (sidebar switch)
+            # or ran `cancel`, don't fight with that.
+            pgrep -x hypridle >/dev/null || hypridle &
+            rm -f "$TIMER_PID_FILE" "$UNTIL_FILE"
+        ) &
+        echo $! > "$TIMER_PID_FILE"
+        disown
+
+        notify_user --a "$APP_NAME" --s "Coffee mode on" --m "Screen lock suppressed for ${minutes} minutes" --t 3000
+        ;;
+esac

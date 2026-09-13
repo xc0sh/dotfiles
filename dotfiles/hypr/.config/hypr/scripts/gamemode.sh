@@ -27,7 +27,7 @@ if [ -f "$HOME"/.config/xcloud/settings/gamemode-enabled ]; then
             --s "Gamemode deactivated" \
             --m "Animations and blur are now enabled."
 else
-  if [ -f "$xcloud_cache_folder"/wallpaper-automation ]; then
+  if kill -0 "$(cat "$xcloud_cache_folder"/wallpaper-automation 2>/dev/null)" 2>/dev/null; then
     touch "$xcloud_cache_folder"/restart-wpauto
     "$HOME"/.config/xcloud/scripts/xcloud-wallpaper-automation
   fi

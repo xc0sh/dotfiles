@@ -1074,6 +1074,77 @@ PanelWindow {
                         Item { implicitWidth: 28 }
                     }
 
+                    // --- COFFEE MODE ---
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Coffee Mode"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
+                        Item { Layout.fillWidth: true }
+                        xCloudSwitch {
+                            id: coffeeModeSwitch
+                            property bool ready: false
+                            // Timed hypridle suppression (default 10 min,
+                            // auto re-enabling) -- see xcloud-coffee-mode.
+                            Process {
+                                id: coffeeModeStateProc
+                                command: ["bash", "-c", "~/.config/xcloud/scripts/xcloud-coffee-mode status"]
+                                stdout: StdioCollector {
+                                    onStreamFinished: {
+                                        console.log("Test for Coffee Mode: " + this.text.trim())
+                                        coffeeModeSwitch.checked = (this.text.trim() !== "off")
+                                        coffeeModeSwitch.ready = true
+                                    }
+                                }
+                            }
+                            // Re-read while the sidebar is open so the switch
+                            // flips back off on its own once the timer expires.
+                            Timer {
+                                interval: 1000
+                                repeat: true
+                                running: root.isOpen
+                                triggeredOnStart: true
+                                onTriggered: coffeeModeStateProc.running = true
+                            }
+                            onClicked: {
+                                if (!ready) return;
+                                let cmd = checked
+                                    ? "~/.config/xcloud/scripts/xcloud-coffee-mode"
+                                    : "~/.config/xcloud/scripts/xcloud-coffee-mode cancel"
+                                Quickshell.execDetached(["bash", "-c", cmd])
+                            }
+                        }
+                        Item { implicitWidth: 28 }
+                    }
+
+                    // --- HYPRSUNSET SCHEDULER ---
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Auto Day/Night"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
+                        Item { Layout.fillWidth: true }
+                        xCloudSwitch {
+                            id: hyprsunsetSchedulerSwitch
+                            property bool ready: false
+                            // Background loop toggled on/off via a cache-dir
+                            // marker file -- same pattern as wallpaper
+                            // automation. See xcloud-hyprsunset-scheduler.
+                            Process {
+                                command: ["bash", "-c", "kill -0 \"$(cat ~/.cache/xcloud/hyprland-dotfiles/hyprsunset-scheduler 2>/dev/null)\" 2>/dev/null && echo 1 || echo 0"]
+                                running: root.isOpen
+                                stdout: StdioCollector {
+                                    onStreamFinished: {
+                                        console.log("Test for Hyprsunset Scheduler: " + this.text.trim())
+                                        hyprsunsetSchedulerSwitch.checked = (this.text.trim() === "1")
+                                        hyprsunsetSchedulerSwitch.ready = true
+                                    }
+                                }
+                            }
+                            onClicked: {
+                                if (!ready) return;
+                                Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-hyprsunset-scheduler"])
+                            }
+                        }
+                        Item { implicitWidth: 28 }
+                    }
+
                     // --- FASTFETCH ---
                     RowLayout {
                         Layout.fillWidth: true

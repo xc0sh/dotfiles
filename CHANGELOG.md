@@ -3,6 +3,7 @@ Version 2.16
 - Add Blue Light Filter toggle switch to sidebar in addition to SUPER + SHIFT + H
 - New quickshell windows installation script added. Using the latest version from GitHub
 - Welcome app is now using the version information from ~/.config/xcloud/version.json
+- Real xCloud branding (badge logo + Tux mascot) added: README banner, fastfetch logo, Welcome app hero image, and default notification icon. The tiny waybar/statusbar logo button keeps the flat placeholder mark for now — the detailed artwork isn't legible at that size.
 
 Version 2.15.1
 --------------------------------------------------------

@@ -12,9 +12,6 @@ swaync-client -rs
 # Set launcher
 echo 'walker' > "$HOME"/.config/xcloud/settings/launcher
 
-# Set walker theme
-echo 'glass' > "$HOME"/.config/xcloud/settings/walker-theme
-
 # Set Window Border
 echo -e 'local name = "default.lua"\nload_variant(name,"windows")' > "$HOME"/.config/hypr/conf/window.lua
 

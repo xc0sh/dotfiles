@@ -6,6 +6,17 @@ on:
     branches: [main]
 
 jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   shellcheck:
     runs-on: ubuntu-latest
     steps:
@@ -32,21 +43,8 @@ jobs:
           ' _ {} \; | sed 's|^\./||' | sort > scripts.txt
           wc -l scripts.txt
 
-      - name: Run shellcheck (known pre-existing issue excluded, reported separately below)
-        run: |
-          # setup/preflight-opensuse.sh sources a genuinely missing
-          # setup/_prebuilt.sh -- a real, pre-existing bug (not introduced by
-          # this repo's rebrand/cleanup work), left deliberately unsuppressed
-          # in the source file so it stays visible to anyone running
-          # shellcheck by hand. Excluded here only so it doesn't block every
-          # future PR on an unrelated, already-known issue; still reported
-          # (non-blocking) in the next step so it doesn't silently vanish
-          # from CI output either.
-          grep -v '^setup/preflight-opensuse.sh$' scripts.txt > scripts-gated.txt
-          shellcheck -x $(cat scripts-gated.txt)
-
-      - name: Report known pre-existing issue (non-blocking)
-        run: shellcheck -x setup/preflight-opensuse.sh || true
+      - name: Run shellcheck
+        run: shellcheck -x $(cat scripts.txt)
 
   branding-regression:
     runs-on: ubuntu-latest
@@ -56,9 +54,10 @@ jobs:
       - name: Check for stray ML4W/mylinuxforwork branding
         run: |
           # CREDITS.md and LICENSE carry legitimate upstream attribution.
-          # README.md legitimately mentions both terms 4 times too (the
-          # "personal fork of" line plus the Known Limitations section) --
-          # excluding only CREDITS/LICENSE would fail this job on day one.
+          # README.md legitimately mentions both terms on 3 lines too (the
+          # "personal fork of" line, the installer-app attribution line, and
+          # the Credits section) -- excluding only CREDITS/LICENSE would
+          # fail this job on day one.
           # This workflow file is also excluded: it legitimately contains
           # both terms in its own check logic below (self-referential).
           if git grep -Iil -E 'ml4w|mylinuxforwork' -- ':!CREDITS.md' ':!LICENSE' ':!README.md' ':!.github/workflows/lint.yml'; then
@@ -70,11 +69,77 @@ jobs:
       - name: Pin README's expected legitimate mention count
         run: |
           count=$(git grep -Iich -E 'ml4w|mylinuxforwork' README.md)
-          if [ "$count" != "4" ]; then
-            echo "::error::README.md now has $count ml4w/mylinuxforwork mentions, expected exactly 4 -- review whether this is a legitimate doc change or drift"
+          if [ "$count" != "3" ]; then
+            echo "::error::README.md now has $count ml4w/mylinuxforwork mentions, expected exactly 3 -- review whether this is a legitimate doc change or drift"
             exit 1
           fi
           echo "README.md mention count OK ($count)."
+
+  setup-scripts-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax-check every setup/*.sh script
+        run: |
+          # Fast, always-on parse check for every setup script -- a cheap
+          # first line of defense before the much slower real-container run
+          # below actually executes them.
+          status=0
+          for f in setup/*.sh; do
+            if ! bash -n "$f"; then
+              echo "::error file=$f::Syntax error"
+              status=1
+            fi
+          done
+          exit $status
+
+  install-flow-smoke-test:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    # Does real package installation in a throwaway container, so it's
+    # slower and more network-dependent than the other jobs -- but this is
+    # a low-traffic personal repo, not a high-volume one, so the always-on
+    # cost is worth it: this exact class of bug (clean shellcheck, broken
+    # in a real run) shipped and stayed shipped before because nothing
+    # ever actually executed the install path in CI.
+    steps:
+      - name: Install git (actions/checkout needs it; base image is minimal)
+        run: pacman -Sy --needed --noconfirm git
+
+      - uses: actions/checkout@v4
+
+      - name: Create a non-root user
+        # The installer shells out to `sudo`, and several distro package
+        # managers (this repo's own check_and_install pattern) refuse to
+        # run as root -- run the actual test as an unprivileged user with
+        # passwordless sudo, matching a real workstation, not the
+        # container's default root.
+        run: |
+          pacman -S --needed --noconfirm sudo
+          useradd -m -G wheel builder
+          echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel
+          chmod 0440 /etc/sudoers.d/wheel
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+
+      - name: Fork+install xcloud-dotfiles-installer and run this checkout in --testmode
+        run: |
+          su builder -c '
+            set -e
+            cd "$GITHUB_WORKSPACE"
+            sudo pacman -Sy --needed --noconfirm git make jq curl
+            curl -fsSL https://raw.githubusercontent.com/xc0sh/xcloud-dotfiles-installer/main/demo/setup.sh -o /tmp/installer-setup.sh
+            # Run everything the bootstrap script does except its final
+            # --install call, which targets the *published* xc0sh/dotfiles
+            # on GitHub main -- not this checkout, mid-PR. Install the
+            # installer app itself, then point it at this checkout, with
+            # source rewritten from the published git URL to a local path
+            # so read_dotinst copies this checkout instead of cloning main.
+            sed -i "/xcloud-dotfiles-installer --install/d" /tmp/installer-setup.sh
+            bash /tmp/installer-setup.sh
+            jq --arg src "$GITHUB_WORKSPACE" ".source = \$src" hyprland-dotfiles.dotinst > /tmp/ci-test.dotinst
+            xcloud-dotfiles-installer --install /tmp/ci-test.dotinst --testmode
+          '
 
   stow-dry-run:
     runs-on: ubuntu-latest

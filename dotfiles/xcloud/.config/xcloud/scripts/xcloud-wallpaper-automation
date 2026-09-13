@@ -23,8 +23,12 @@ _setWallpaperRandomly() {
     done
 }
 
-if [ ! -f "$xcloud_cache_folder"/wallpaper-automation ]; then
-    touch "$xcloud_cache_folder"/wallpaper-automation
+# $xcloud_cache_folder/wallpaper-automation is a pidfile, not just a flag --
+# `pgrep -f xcloud-wallpaper-automation` also matches this invocation itself
+# (and any bash -c wrapper around it), so killing by that pattern could not
+# reliably target only the running loop. A pidfile does.
+if [ ! -f "$xcloud_cache_folder"/wallpaper-automation ] || ! kill -0 "$(cat "$xcloud_cache_folder"/wallpaper-automation)" 2>/dev/null; then
+    echo $$ > "$xcloud_cache_folder"/wallpaper-automation
     echo ":: Start wallpaper automation script"
     notify_user \
         --a "${APP_NAME}" \
@@ -32,12 +36,12 @@ if [ ! -f "$xcloud_cache_folder"/wallpaper-automation ]; then
         --m "Wallpaper automation process started.\nWallpaper will be changed every $sec seconds."
     _setWallpaperRandomly
 else
+    wp=$(cat "$xcloud_cache_folder"/wallpaper-automation)
     rm "$xcloud_cache_folder"/wallpaper-automation
+    kill -KILL "$wp"
     notify_user \
         --a "${APP_NAME}" \
         --i "${NOTIFICATION_ICON}" \
         --m "Wallpaper automation process stopped."
     echo ":: Wallpaper automation script process $wp stopped"
-    wp=$(pgrep -f xcloud-wallpaper-automation)
-    kill -KILL "$wp"
 fi

@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-#                                 __        __ 
+#                                 __        __
 #   ___ ___________ ___ ___  ___ / /  ___  / /_
 #  (_-</ __/ __/ -_) -_) _ \(_-</ _ \/ _ \/ __/
-# /___/\__/_/  \__/\__/_//_/___/_//_/\___/\__/ 
-#                                              
-# Based on https://github.com/hyprwm/contrib/blob/main/grimblast/screenshot.sh
+# /___/\__/_/  \__/\__/_//_/___/_//_/\___/\__/
+#
+# Rofi menu/flow originally based on
+# https://github.com/hyprwm/contrib/blob/main/grimblast/screenshot.sh, but no
+# longer depends on grimblast itself (an AUR/source-build-only tool) -- the
+# actual capture now goes through hyprshot+satty (both in Arch's official
+# `extra` repo) for "output"/"area" modes, and plain grim (as before) for
+# "screen" (all-outputs) mode, which hyprshot itself has no equivalent for.
 
 # -----------------------------------------------------
 
@@ -44,10 +49,6 @@ esac
 source "$HOME/.config/xcloud/scripts/xcloud-notification-handler"
 APP_NAME="Screen Capture"
 NOTIFICATION_ICON="camera-photo-symbolic"
-
-# Screenshot Editor
-GRIMBLAST_EDITOR="$(cat ~/.config/xcloud/settings/screenshot-editor)"
-export GRIMBLAST_EDITOR
 
 # Quick instant mode: full screen
 take_instant_full() {
@@ -210,7 +211,6 @@ copy_save_editor_exit() {
 }
 
 # Confirm and execute
-# Note: `grimblast` only supports png outpuut when copy is specified
 copy_save_editor_run() {
     selected_chosen="$(copy_save_editor_exit)"
     if [[ "$selected_chosen" == "$copy" ]]; then
@@ -257,27 +257,106 @@ timer() {
     done
 }
 
+# Captures $option_type_screenshot (screen/output/area, set by
+# type_screenshot_run) per $option_chosen (copy/save/copysave/edit, set by
+# copy_save_editor_run), replacing what grimblast used to do in one call.
+# "output"/"area" go through hyprshot for copy/save/copysave; "screen" (all
+# outputs -- hyprshot has no equivalent mode for this) still uses grim
+# directly, same as take_instant_full above. "edit" pipes raw image bytes
+# into satty instead of the old configurable $GRIMBLAST_EDITOR (see
+# screenshot-editor cleanup).
+#
+# Deliberately NOT using `hyprshot -r` for edit mode: hyprshot's own script
+# backgrounds the actual grab (`begin_grab $OPTION & checkRunning`) and
+# checkRunning exits the whole process the instant `pgrep slurp` finds
+# nothing -- for `-m output` there's no slurp involved at all, so it can (and
+# for a fast/no-interaction capture, likely does) exit before the backgrounded
+# `grim -g ... -` finishes writing to stdout, truncating what satty reads on
+# the other end of the pipe. Sidestepped entirely by calling grim directly
+# for all three edit-mode branches (`_active_output_geometry` below is
+# hyprshot's own `grab_active_output` geometry expression, replicated so
+# "output"+edit doesn't need hyprshot's process at all).
+#
+# Known gap, not live-testable from here: hyprshot always names its own save
+# file with a .png extension internally; if $NAME is configured with a
+# .jpg/.jpeg/.ppm extension (via settings/screenshot-filename), the
+# "output"/"area" copy/save/copysave paths may not honor that the way
+# "screen" (plain grim, which does respect $image_format) does. Flagged for
+# the first live test, not fixed blind.
+_active_output_geometry() {
+    local monitors active_id current
+    monitors=$(hyprctl -j monitors)
+    active_id=$(hyprctl -j activeworkspace | jq -r '.id')
+    current=$(echo "$monitors" | jq -r --argjson id "$active_id" 'first(.[] | select(.activeWorkspace.id == $id))')
+    echo "$current" | jq -r '"\(.x),\(.y) \(.width/.scale|round)x\(.height/.scale|round)"'
+}
+
+_capture() {
+    local mode="$1" action="$2"
+
+    if [[ "$action" == "edit" ]]; then
+        case "$mode" in
+            screen)  grim - | satty --filename - --output-filename "$screenshot_folder/$NAME" ;;
+            output)  grim -g "$(_active_output_geometry)" - | satty --filename - --output-filename "$screenshot_folder/$NAME" ;;
+            area)    grim -g "$(slurp -d)" - | satty --filename - --output-filename "$screenshot_folder/$NAME" ;;
+        esac
+        return 0
+    fi
+
+    mkdir -p "$screenshot_folder"
+    case "$mode" in
+        screen)
+            grim -t "$image_format" "$screenshot_folder/$NAME"
+            [[ "$action" == "copy" || "$action" == "copysave" ]] && wl-copy --type "image/$image_format" < "$screenshot_folder/$NAME"
+            [[ "$action" == "copy" ]] && rm -f "$screenshot_folder/$NAME"
+            ;;
+        output)
+            if [[ "$action" == "copy" ]]; then
+                hyprshot -m output -m active -s --clipboard-only
+            else
+                hyprshot -m output -m active -s -o "$screenshot_folder" -f "$NAME"
+            fi
+            ;;
+        area)
+            if [[ "$action" == "copy" ]]; then
+                hyprshot -m region -z -s --clipboard-only
+            else
+                hyprshot -m region -z -s -o "$screenshot_folder" -f "$NAME"
+            fi
+            ;;
+    esac
+    # Without this, _capture's own return status would be whatever the last
+    # conditional check inside the case above happened to evaluate to (e.g.
+    # false for a "save" that correctly skipped the copy-only branch) --
+    # harmless today since nothing checks it, but wrong on its own terms.
+    return 0
+}
+
+# _capture's own hyprshot/grim calls are silenced (-s, or just not sent one)
+# so this is the one place notifications come from for the rofi-menu flow --
+# worded per $option_chosen since "edit" hasn't saved anything yet (satty's
+# own UI handles that) and "copy" never touches disk.
+_notify_capture_result() {
+    case "$option_chosen" in
+        edit) return ;; # satty is still open / user may cancel -- nothing to report yet
+        copy) notify_user --a "${APP_NAME}" --i "${NOTIFICATION_ICON}" --s "Screenshot copied" --m "Copied to clipboard" --t 1000 ;;
+        *)    notify_user --a "${APP_NAME}" --i "${NOTIFICATION_ICON}" --s "Screenshot saved" --m "$screenshot_folder/$NAME" --t 1000 ;;
+    esac
+}
+
 # take shots
 takescreenshot() {
     sleep 1
-    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" "$NAME"
-    if [ -f "$HOME"/"$NAME" ]; then
-        if [ -d "$screenshot_folder" ]; then
-            mv "$HOME"/"$NAME" "$screenshot_folder"/
-        fi
-    fi
+    _capture "$option_type_screenshot" "$option_chosen"
+    _notify_capture_result
 }
 
 takescreenshot_timer() {
     sleep 1
     timer
     sleep 1
-    grimblast --notify "$option_chosen" --filetype "$image_format" "$option_type_screenshot" "$NAME"
-    if [ -f "$HOME"/"$NAME" ]; then
-        if [ -d "$screenshot_folder" ]; then
-            mv "$HOME"/"$NAME" "$screenshot_folder"/
-        fi
-    fi
+    _capture "$option_type_screenshot" "$option_chosen"
+    _notify_capture_result
 }
 
 # Execute Command

@@ -7,11 +7,10 @@ local map = vim.keymap.set
 -- Clear search highlight
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 
--- Window navigation
-map("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
-map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
-map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
-map("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
+-- Window navigation: <C-hjkl> is handled by vim-tmux-navigator
+-- (lua/plugins/tmux-navigator.lua) instead of a plain <C-w>hjkl map here --
+-- it seamlessly extends the same keys out to tmux panes when the split
+-- being moved into doesn't exist, rather than only moving within Neovim.
 
 -- Window resizing
 map("n", "<C-Up>", "<cmd>resize +2<CR>", { desc = "Increase window height" })

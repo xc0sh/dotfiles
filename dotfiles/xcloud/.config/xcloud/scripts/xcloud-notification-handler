@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEFAULT_ICON="notifications-symbolic"
+DEFAULT_ICON="$HOME/.config/xcloud/assets/xcloud-tux.png"
 
 notify_user() {
     local icon="$DEFAULT_ICON"

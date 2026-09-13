@@ -3,6 +3,12 @@ hyprland-qtutils
 libnotify-tools
 libqt5-qtwayland
 qt6-wayland
+# NOTE: hardcodes a Python minor version -- Tumbleweed rolls its default
+# python3 forward periodically, and this line will need to track that
+# (e.g. python314-pipx). Couldn't verify the current correct name from this
+# environment (openSUSE's package search/OBS API returned 403/401/404 on
+# every endpoint tried) -- fix opportunistically when someone actually runs
+# this on Tumbleweed and hits the real error.
 python313-pipx
 python3-devel
 python3-setuptools
@@ -24,7 +30,13 @@ qt6-multimedia
 qt6-multimedia-imports
 gvfs-backend
 hyprsunset
+# NOTE: package names guessed from upstream project names (matches Arch's
+# `extra` repo naming) -- couldn't verify against openSUSE's repos from this
+# environment (same OBS/API access issue as the python313-pipx note above).
+# Fix opportunistically if either is wrong on a real Tumbleweed run.
+hyprshot
+satty
 jetbrainsmono-nerd-fonts
 gcc
 qt6-qt5compat-imports
-gnome-themes-extras
+gnome-themes-extra

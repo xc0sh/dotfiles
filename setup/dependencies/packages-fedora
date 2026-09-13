@@ -7,7 +7,6 @@ uwsm
 python3-pip
 python3-gobject
 python3-devel
-python3-devel
 python3-setuptools
 gtk3
 gtk-layer-shell
@@ -30,6 +29,11 @@ qt6-qtvirtualkeyboard
 qt6-qtmultimedia
 gvfs-mtp
 hyprsunset
+# NOTE: package names guessed from upstream project names (matches Arch's
+# `extra` repo naming) -- couldn't verify against Fedora's repos from this
+# environment. Fix opportunistically if either is wrong on a real Fedora run.
+hyprshot
+satty
 quickshell
 openssl-devel
 pkg-config
@@ -37,8 +41,6 @@ gnome-themes-extra
 gcc
 gobject-introspection-devel
 cairo-gobject-devel
-pkg-config
-python3-devel
 gtk4
 libadwaita-devel
 lua

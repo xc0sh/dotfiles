@@ -3,12 +3,17 @@
 -- kept only as a data-only dependency: it ships the default lsp/<name>.lua
 -- configs on its runtimepath, which vim.lsp.enable() picks up automatically.
 --
--- If a server ever needs an override (extra settings, custom cmd, etc.), add
--- a sibling lsp/<name>.lua file directly under .config/nvim/ (i.e. next to
--- lua/, not inside it) -- Neovim's native runtimepath resolution merges it
--- with nvim-lspconfig's default automatically. None of the servers below
--- need one: every installed binary matches nvim-lspconfig's defaults
--- exactly.
+-- A same-named sibling lsp/<name>.lua under .config/nvim/ (next to lua/,
+-- not inside it) is Neovim's documented way to layer in extra config, but
+-- it is NOT a reliable way to *override* a key nvim-lspconfig's own file
+-- already sets: nvim_get_runtime_file() returns user config before plugin
+-- files (~/.config/nvim precedes lazy-installed plugins on 'runtimepath'),
+-- and the later file in that list wins per matching key when vim.lsp merges
+-- them -- so the plugin's own value clobbers the user's, the opposite of
+-- what "override" implies. Confirmed by hand for qmlls below: a sibling
+-- file alone left `cmd` on nvim-lspconfig's default and the server never
+-- started ("qmlls is not executable"). Use an explicit vim.lsp.config()
+-- call instead for anything that must actually win.
 --
 -- All servers here are installed system-wide via pacman/paru, not
 -- mason.nvim -- this project installs tooling repo -> AUR -> user-install,
@@ -17,6 +22,11 @@ return {
   "neovim/nvim-lspconfig",
   lazy = false,
   config = function()
+    -- This system's Qt6 (qt6-declarative, already a Quickshell dependency)
+    -- installs the binary as `qmlls6`, not `qmlls` -- documented directly
+    -- in nvim-lspconfig's own default lsp/qmlls.lua as the standard fix.
+    vim.lsp.config("qmlls", { cmd = { "qmlls6" } })
+
     vim.lsp.enable({
       "lua_ls",
       "bashls",
@@ -29,6 +39,8 @@ return {
       "yamlls",
       "dockerls",
       "marksman",
+      -- QML: this project's entire Quickshell shell (~9k lines) is QML.
+      "qmlls",
     })
 
     vim.diagnostic.config({

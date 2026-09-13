@@ -94,6 +94,9 @@ QtObject {
         reader.running = true;
     }
 
-    // Load the JSON colors automatically when Quickshell starts
-    // Component.onCompleted: reloadTheme()
+    // Load the JSON colors automatically when Quickshell starts. Safe even
+    // before colors.json exists (e.g. first run before matugen has ever
+    // generated a theme): the process handler above already no-ops on
+    // empty output.
+    Component.onCompleted: reloadTheme()
 }

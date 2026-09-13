@@ -26,6 +26,7 @@ return {
       "markdown",
       "markdown_inline",
       "query",
+      "qmljs", -- this project's Quickshell shell is ~9k lines of QML
     }
 
     require("nvim-treesitter").install(parsers)

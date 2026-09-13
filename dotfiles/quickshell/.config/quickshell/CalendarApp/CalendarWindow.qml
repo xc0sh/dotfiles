@@ -300,14 +300,26 @@ PanelWindow {
                     }
                 }
 
+                ActionIcon {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconTxt: "⤢"
+
+                    onClicked: {
+                        Quickshell.execDetached(["bash", "-c",
+                            Quickshell.env("HOME") + "/.config/xcloud/settings/calendar"])
+                        root.isOpen = false
+                    }
+                }
+
                 xCloudButton {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Today"
-                    
+
                     opacity: (currentMonth !== todayMonth || currentYear !== todayYear) ? 1.0 : 0.0
                     enabled: opacity > 0
-                    
+
                     Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
                     onClicked: {
