@@ -17,11 +17,16 @@
 # You can also create a .bashrc_custom file in your home directory
 # -----------------------------------------------------
 
+# ~/.local/bin has to be on PATH before the modular configuration loop below --
+# 20-customization's oh-my-posh eval needs it (oh-my-posh is a ~/.local/bin-only
+# install, not a system package), and silently no-ops without it.
+export PATH="$HOME/.local/bin:$PATH"
+
 # -----------------------------------------------------
 # Load modular configuration
 # -----------------------------------------------------
 
-for f in ~/.config/bashrc/*; do 
+for f in ~/.config/bashrc/*; do
     if [ ! -d $f ]; then
         c=`echo $f | sed -e "s=.config/bashrc=.config/bashrc/custom="`
         [[ -f $c ]] && source $c || source $f
@@ -35,4 +40,3 @@ done
 if [ -f ~/.bashrc_custom ]; then
     source ~/.bashrc_custom
 fi
-export PATH="$HOME/.local/bin:$PATH"
