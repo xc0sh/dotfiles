@@ -21,11 +21,31 @@
 return {
   "neovim/nvim-lspconfig",
   lazy = false,
+  dependencies = { "b0o/schemastore.nvim" },
   config = function()
     -- This system's Qt6 (qt6-declarative, already a Quickshell dependency)
     -- installs the binary as `qmlls6`, not `qmlls` -- documented directly
     -- in nvim-lspconfig's own default lsp/qmlls.lua as the standard fix.
     vim.lsp.config("qmlls", { cmd = { "qmlls6" } })
+
+    -- Schema-driven completion/validation for known JSON/YAML files
+    -- (package.json, GitHub Actions workflows, etc.)
+    vim.lsp.config("jsonls", {
+      settings = {
+        json = {
+          schemas = require("schemastore").json.schemas(),
+          validate = { enable = true },
+        },
+      },
+    })
+    vim.lsp.config("yamlls", {
+      settings = {
+        yaml = {
+          schemaStore = { enable = false, url = "" },
+          schemas = require("schemastore").yaml.schemas(),
+        },
+      },
+    })
 
     vim.lsp.enable({
       "lua_ls",

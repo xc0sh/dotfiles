@@ -10,6 +10,8 @@ return {
       sh = { "shellcheck" },
       bash = { "shellcheck" },
       python = { "ruff" },
+      yaml = { "yamllint" },
+      dockerfile = { "hadolint" },
     }
 
     vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {

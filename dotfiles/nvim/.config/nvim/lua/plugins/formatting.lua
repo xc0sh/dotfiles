@@ -24,6 +24,11 @@ return {
       python = { "ruff_format" },
       rust = { "rustfmt" },
       go = { "gofmt" },
+      qml = { "qmlformat" },
+      json = { "prettier" },
+      jsonc = { "prettier" },
+      yaml = { "prettier" },
+      markdown = { "prettier" },
     },
     format_on_save = {
       lsp_format = "never",
