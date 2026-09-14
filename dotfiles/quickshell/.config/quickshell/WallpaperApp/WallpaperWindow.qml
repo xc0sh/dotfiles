@@ -153,7 +153,7 @@ PanelWindow {
     }
 
     // --- REUSABLE COMPONENTS ---
-    component xCloudMenuItem: MenuItem {
+    component XCloudMenuItem: MenuItem {
         id: control
         contentItem: Text {
             text: control.text
@@ -193,7 +193,7 @@ PanelWindow {
         }
     }
 
-    component xCloudComboBox: ComboBox {
+    component XCloudComboBox: ComboBox {
         id: xcloudComboBox
         delegate: ItemDelegate {
             id: itemDelegate
@@ -278,7 +278,7 @@ PanelWindow {
         }
     }
 
-    component xCloudCheckBox : CheckBox {
+    component XCloudCheckBox : CheckBox {
         id: xcloudCheckBox
         spacing: 10
         indicator: Rectangle {
@@ -392,7 +392,7 @@ PanelWindow {
                             radius: 8 
                         }
                         
-                        xCloudMenuItem { 
+                        XCloudMenuItem { 
                             text: "Random Wallpaper"
                             onClicked: {
                                 root.isOpen = false
@@ -400,7 +400,7 @@ PanelWindow {
                             } 
                         }
                         
-                        xCloudMenuItem { 
+                        XCloudMenuItem { 
                             text: "Wallpaper Effects"
                             onClicked: {
                                 root.isOpen = false
@@ -408,7 +408,7 @@ PanelWindow {
                             } 
                         }
 
-                        xCloudMenuItem { 
+                        XCloudMenuItem { 
                             text: "Clear Wallpaper Cache"
                             onClicked: {
                                 root.isOpen = false
@@ -416,14 +416,14 @@ PanelWindow {
                             } 
                         }
 
-                        xCloudMenuItem { 
+                        XCloudMenuItem { 
                             text: "Reload Images"
                             onClicked: {
                                 folderLoader.running = true;
                             } 
                         }
 
-                        xCloudMenuItem {
+                        XCloudMenuItem {
                             text: advancedSettingsLabel()
                             onClicked: {
                                 advancedOptions.visible = !advancedOptions.visible
@@ -502,7 +502,7 @@ PanelWindow {
                         Accessible.role: Accessible.StaticText
                     }
 
-                    xCloudComboBox {
+                    XCloudComboBox {
                         id: transitionEffectComboBox
                         model: root.transitionEffects
                         currentIndex: root.transitionEffects.indexOf(root.transitionEffect)
@@ -529,7 +529,7 @@ PanelWindow {
                             Accessible.role: Accessible.StaticText
                         }
 
-                        xCloudComboBox {
+                        XCloudComboBox {
                             id: outputMonitorSelector
                             model: monitorModel
                             textRole: "name"
@@ -562,7 +562,7 @@ PanelWindow {
                             Accessible.role: Accessible.StaticText
                         }
 
-                        xCloudComboBox {
+                        XCloudComboBox {
                             id: wallpaperPositioningSelector
                             model: [
                                 "center",
@@ -578,7 +578,7 @@ PanelWindow {
                     }
                 }
 
-                xCloudCheckBox {
+                XCloudCheckBox {
                     id: shouldUpdateTheming
                     checked: true
                     text: "Update theming from wallpaper"

@@ -138,7 +138,7 @@ PanelWindow {
     }
 
     // Styled xCloud Button for the "Today" action
-    component xCloudButton: Button {
+    component XCloudButton: Button {
         background: Rectangle {
             color: "transparent"
             border.color: Theme.primary
@@ -312,7 +312,7 @@ PanelWindow {
                     }
                 }
 
-                xCloudButton {
+                XCloudButton {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Today"

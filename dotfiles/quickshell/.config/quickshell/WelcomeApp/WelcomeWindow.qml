@@ -53,7 +53,7 @@ FloatingWindow {
     }
 
     // Define a custom reusable styled MenuItem
-    component xCloudMenuItem: MenuItem {
+    component XCloudMenuItem: MenuItem {
         id: control
         
         contentItem: Text {
@@ -74,7 +74,7 @@ FloatingWindow {
         }
     }
 
-    component xCloudMenuSeparator: MenuSeparator {
+    component XCloudMenuSeparator: MenuSeparator {
         contentItem: Rectangle {
             implicitWidth: 200
             implicitHeight: 1
@@ -111,63 +111,63 @@ FloatingWindow {
                 enter: Transition { NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutQuad } }
                 exit: Transition { NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150; easing.type: Easing.InQuad } }
 
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Input");
                     onClicked: {
                         Quickshell.execDetached(["gnome-text-editor", Quickshell.env("HOME") + "/.config/hypr/input.lua"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Gestures");
                     onClicked: {
                         Quickshell.execDetached(["gnome-text-editor", Quickshell.env("HOME") + "/.config/hypr/gestures.lua"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Monitors");
                     onClicked: { 
                         // Quickshell.execDetached(["gnome-text-editor", Quickshell.env("HOME") + "/.config/hypr/monitors.lua"])
                         Quickshell.execDetached(["nwg-displays"]) 
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Network");
                     onClicked: { 
                         Quickshell.execDetached(["kitty", "--class", "dotfiles-floating", "-e", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-network"])
                     }
                 }    
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Bluetooth");
                     onClicked: { 
                         Quickshell.execDetached(["blueman-manager"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Wallpaper");
                     onClicked: { 
                         Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-wallpaper-app"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Theme");
                     onClicked: { 
                         Quickshell.execDetached(["nwg-look"])
                     }
                 }
-                xCloudMenuSeparator {}
-                xCloudMenuItem { 
+                XCloudMenuSeparator {}
+                XCloudMenuItem { 
                     text: qsTr("Sidebar");
                     onClicked: {
                         Quickshell.execDetached(["qs", "ipc", "call", "sidebar", "toggle"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Dotfiles Settings");
                     onClicked: {
                         Quickshell.execDetached(["qs", "-p", Quickshell.env("HOME") + "/.local/share/xcloud-dotfiles-settings/quickshell", "ipc", "call", "settings", "toggle"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: root.isHyprlandSettingsInstalled ? qsTr("HyprMod") : qsTr("Install HyprMod")
                     onClicked: { 
                         if (root.isHyprlandSettingsInstalled) {
@@ -196,32 +196,32 @@ FloatingWindow {
                 enter: Transition { NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutQuad } }
                 exit: Transition { NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150; easing.type: Easing.InQuad } }
 
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Display Manager");
                     onClicked: { 
                         Quickshell.execDetached(["kitty", "--class", "dotfiles-floating", "-e", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-install-sddm"]) 
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Network Manager Applet");
                     onClicked: { 
                         Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-toggle-nmapplet"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("Change Shell");
                     onClicked: { 
                         Quickshell.execDetached(["kitty", "--class", "dotfiles-floating", "-e", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-change-shell"])
                     }
                 }
-                xCloudMenuItem { 
+                XCloudMenuItem { 
                     text: qsTr("System Info") 
                     onClicked: { 
                         Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-hyprsysteminfo"])
                     }
                 }
-                xCloudMenuSeparator {}
-                xCloudMenuItem { 
+                XCloudMenuSeparator {}
+                XCloudMenuItem { 
                     text: qsTr("Exit Hyprland") 
                     onClicked: {
                         Quickshell.execDetached(["bash", "-c", "qs ipc call power toggle"])
@@ -247,36 +247,36 @@ FloatingWindow {
                 enter: Transition { NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutQuad } }
                 exit: Transition { NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150; easing.type: Easing.InQuad } }
 
-                xCloudMenuItem { text: qsTr("xCloud Dotfiles Homepage"); onClicked: { 
+                XCloudMenuItem { text: qsTr("xCloud Dotfiles Homepage"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://xcloud.gg/os/"])
                     }
                 }
-                xCloudMenuItem { text: qsTr("xCloud Dotfiles GitHub"); onClicked: { 
+                XCloudMenuItem { text: qsTr("xCloud Dotfiles GitHub"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://github.com/xc0sh/dotfiles"]) 
                     } 
                 }
-                xCloudMenuItem { text: qsTr("xCloud Dotfiles Changelog"); onClicked: { 
+                XCloudMenuItem { text: qsTr("xCloud Dotfiles Changelog"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://github.com/xc0sh/dotfiles/blob/main/CHANGELOG.md"]) 
                     } 
                 }
-                xCloudMenuItem { text: qsTr("xCloud YouTube Channel"); onClicked: { 
+                XCloudMenuItem { text: qsTr("xCloud YouTube Channel"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://www.youtube.com/channel/UC0sUzmZ0CHvVCVrpRfGKZfw"]) 
                     } 
                 }
-                xCloudMenuItem { text: qsTr("Get more Wallpapers"); onClicked: { 
+                XCloudMenuItem { text: qsTr("Get more Wallpapers"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://github.com/xc0sh/wallpapers"]) 
                     } 
                 }
-                xCloudMenuSeparator {}
-                xCloudMenuItem { text: qsTr("Hyprland Homepage"); onClicked: {
+                XCloudMenuSeparator {}
+                XCloudMenuItem { text: qsTr("Hyprland Homepage"); onClicked: {
                     Quickshell.execDetached(["xdg-open", "https://hypr.land"])
                     }
                 }
-                xCloudMenuItem { text: qsTr("Hyprland Wiki"); onClicked: {
+                XCloudMenuItem { text: qsTr("Hyprland Wiki"); onClicked: {
                     Quickshell.execDetached(["xdg-open", "https://wiki.hypr.land"])
                     }
                 }
-                xCloudMenuItem { text: qsTr("Update xCloud Dotfiles"); onClicked: { 
+                XCloudMenuItem { text: qsTr("Update xCloud Dotfiles"); onClicked: { 
                     Quickshell.execDetached(["xdg-open", "https://xcloud.gg/os/getting-started/update"]) 
                     } 
                 }

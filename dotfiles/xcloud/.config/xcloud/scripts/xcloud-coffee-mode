@@ -21,6 +21,7 @@ CACHE_DIR="$HOME/.cache/xcloud/hyprland-dotfiles"
 mkdir -p "$CACHE_DIR"
 TIMER_PID_FILE="$CACHE_DIR/coffee-mode.pid"
 UNTIL_FILE="$CACHE_DIR/coffee-mode.until"
+WAS_RUNNING_FILE="$CACHE_DIR/coffee-mode.was-running"
 APP_NAME="xCloud Coffee Mode"
 
 # Kill any previously-scheduled re-enable timer from an earlier invocation,
@@ -37,13 +38,19 @@ cancel_pending_timer() {
 case "$1" in
     cancel)
         cancel_pending_timer
-        pgrep -x hypridle >/dev/null || hypridle &
+        if [ -f "$WAS_RUNNING_FILE" ]; then
+            pgrep -x hypridle >/dev/null || hypridle &
+            rm -f "$WAS_RUNNING_FILE"
+        fi
         notify_user --a "$APP_NAME" --s "Coffee mode ended" --m "hypridle re-enabled" --t 3000
         ;;
     status)
         if [ -f "$UNTIL_FILE" ]; then
-            remaining=$(( ($(cat "$UNTIL_FILE") - $(date +%s)) / 60 ))
-            [ "$remaining" -gt 0 ] && echo "${remaining}m" || echo "off"
+            remaining_sec=$(( $(cat "$UNTIL_FILE") - $(date +%s) ))
+            # Round up so the last minute of any timer (or any timer under
+            # a minute) still reports as active instead of "off" -- integer
+            # division of remaining_sec/60 would floor it to 0 here.
+            [ "$remaining_sec" -gt 0 ] && echo "$(( (remaining_sec + 59) / 60 ))m" || echo "off"
         else
             echo "off"
         fi
@@ -59,7 +66,11 @@ case "$1" in
         minutes="${minutes:-$1}"
         cancel_pending_timer
 
-        pgrep -x hypridle >/dev/null && killall hypridle
+        # Only record (and later restore) hypridle's prior state the first
+        # time it's actually seen running -- an extend call (coffee mode
+        # already active) hits this with hypridle already down from the
+        # earlier invocation, and must not clobber that original record.
+        pgrep -x hypridle >/dev/null && { killall hypridle; touch "$WAS_RUNNING_FILE"; }
 
         date -d "+${minutes} minutes" +%s > "$UNTIL_FILE" 2>/dev/null || \
             echo $(( $(date +%s) + minutes * 60 )) > "$UNTIL_FILE"
@@ -72,11 +83,15 @@ case "$1" in
             while [ "$(date +%s)" -lt "$(cat "$UNTIL_FILE")" ]; do
                 sleep 30
             done
-            # Only restart hypridle if it's still down for this reason --
-            # if the user already re-enabled it manually (sidebar switch)
-            # or ran `cancel`, don't fight with that.
-            pgrep -x hypridle >/dev/null || hypridle &
-            rm -f "$TIMER_PID_FILE" "$UNTIL_FILE"
+            # Only restart hypridle if it was running before coffee mode
+            # suppressed it, and if it's still down for that reason -- if
+            # it was never running to begin with, or the user already
+            # re-enabled it manually (sidebar switch) or ran `cancel`,
+            # don't fight with that.
+            if [ -f "$WAS_RUNNING_FILE" ]; then
+                pgrep -x hypridle >/dev/null || hypridle &
+            fi
+            rm -f "$TIMER_PID_FILE" "$UNTIL_FILE" "$WAS_RUNNING_FILE"
         ) &
         echo $! > "$TIMER_PID_FILE"
         disown

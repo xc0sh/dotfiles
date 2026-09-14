@@ -89,7 +89,7 @@ PanelWindow {
     }
 
     // --- REUSABLE COMPONENTS ---
-    component xCloudMenuItem: MenuItem {
+    component XCloudMenuItem: MenuItem {
         id: control
         contentItem: Text {
             text: control.text
@@ -106,7 +106,7 @@ PanelWindow {
         }
     }
 
-    component xCloudButton: Button {
+    component XCloudButton: Button {
         Layout.fillWidth: true
         background: Rectangle {
             color: "transparent"
@@ -125,7 +125,7 @@ PanelWindow {
         }
     }
 
-    component xCloudSwitch: Switch {
+    component XCloudSwitch: Switch {
         Layout.alignment: Qt.AlignVCenter
         implicitWidth: 48
         implicitHeight: 26
@@ -286,14 +286,14 @@ PanelWindow {
                 Layout.fillWidth: true
                 spacing: 10
 
-                xCloudButton {
+                XCloudButton {
                     text: "Welcome"
                     onClicked: {
                         root.isOpen = false
                         Quickshell.execDetached(["bash", "-c", "qs ipc call welcome toggle"])
                     }
                 }
-                xCloudButton {
+                XCloudButton {
                     text: "Settings"
                     onClicked: {
                         root.isOpen = false
@@ -301,7 +301,7 @@ PanelWindow {
                         Quickshell.execDetached(["bash", "-c", "qs -p " + Quickshell.env("HOME") + "/.local/share/xcloud-dotfiles-settings/quickshell ipc call settings toggle"])
                     }
                 }
-                xCloudButton {
+                XCloudButton {
                     text: "HyprMod"
                     visible: root.isHyprlandSettingsInstalled
                     onClicked: {
@@ -659,7 +659,7 @@ PanelWindow {
                             font.pixelSize: 14
                             Layout.rightMargin: 8
                         }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: engineSwitch
                             property bool ready: false
                             // Read the configured engine (defaults to waybar).
@@ -696,7 +696,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Status Bar"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: statusbarSwitch
                             property bool ready: false
                             property string activeBar: "waybar"
@@ -766,13 +766,13 @@ PanelWindow {
                                 }
 
                                 background: Rectangle { color: Theme.background; border.color: Theme.primary; border.width: 1; radius: 8 }
-                                xCloudMenuItem { text: "Reload Status Bar"; onClicked: {
+                                XCloudMenuItem { text: "Reload Status Bar"; onClicked: {
                                         // Reads the settings file and reloads the
                                         // matching bar.
                                         Quickshell.execDetached(["bash", "-c", "~/.config/xcloud/scripts/xcloud-reload-statusbar"])
                                     }
                                 }
-                                xCloudMenuItem {
+                                XCloudMenuItem {
                                     text: "Select Waybar Theme"
                                     visible: statusbarSwitch.activeBar === "waybar"
                                     height: visible ? implicitHeight : 0
@@ -780,7 +780,7 @@ PanelWindow {
                                         Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/waybar/themeswitcher.sh"])
                                     }
                                 }
-                                xCloudMenuItem {
+                                XCloudMenuItem {
                                     text: "Edit Quicklinks"
                                     visible: statusbarSwitch.activeBar === "waybar"
                                     height: visible ? implicitHeight : 0
@@ -789,7 +789,7 @@ PanelWindow {
                                         Quickshell.execDetached(["gnome-text-editor", Quickshell.env("HOME") + "/.config/xcloud/settings/waybar-quicklinks.json"])
                                     }
                                 }
-                                xCloudMenuItem {
+                                XCloudMenuItem {
                                     text: "Edit Settings"
                                     visible: statusbarMenu.overrideExists
                                     height: visible ? implicitHeight : 0
@@ -809,7 +809,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Statusbar Expanded"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: statusbarExpandedSwitch
                             property bool ready: false
                             // Read the current state from the "alwaysExpanded" flag
@@ -847,7 +847,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Statusbar Autohide"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: statusbarAutohideSwitch
                             property bool ready: false
                             // Read the current state from the "autohide" flag in
@@ -896,7 +896,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Dock"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: dockSwitch
                             property bool ready: false
                             // Read the current state from the "enabled" flag in
@@ -948,7 +948,7 @@ PanelWindow {
                                 padding: 8
 
                                 background: Rectangle { color: Theme.background; border.color: Theme.primary; border.width: 1; radius: 8 }
-                                xCloudMenuItem { text: "Reload Dock"; onClicked: {
+                                XCloudMenuItem { text: "Reload Dock"; onClicked: {
                                         // Tells the running dock to re-read its
                                         // settings files and apply them live.
                                         Quickshell.execDetached(["bash", "-c", "~/.config/xcloud/scripts/xcloud-reload-dock"])
@@ -963,7 +963,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Dock Autohide"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: dockAutohideSwitch
                             property bool ready: false
                             // Read the current state from the "autohide" flag in
@@ -1011,7 +1011,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Gamemode"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: gamemodeSwitch
                             property bool ready: false
                             Process {
@@ -1038,7 +1038,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Hypridle"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: hypridleSwitch
                             property bool ready: false
                             // Purely a runtime toggle: hypridle is started by
@@ -1079,7 +1079,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Coffee Mode"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: coffeeModeSwitch
                             property bool ready: false
                             // Timed hypridle suppression (default 10 min,
@@ -1120,7 +1120,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Auto Day/Night"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: hyprsunsetSchedulerSwitch
                             property bool ready: false
                             // Background loop toggled on/off via a cache-dir
@@ -1150,7 +1150,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         Text { text: "Fastfetch"; color: Theme.primary; font.family: Theme.fontFamily; font.pixelSize: 16 }
                         Item { Layout.fillWidth: true }
-                        xCloudSwitch {
+                        XCloudSwitch {
                             id: fastfetchSwitch
                             property bool ready: false
                             Process {
@@ -1203,17 +1203,17 @@ PanelWindow {
                                 padding: 8
 
                                 background: Rectangle { color: Theme.background; border.color: Theme.primary; border.width: 1; radius: 8 }
-                                xCloudMenuItem { text: "Set GTK Theme"; onClicked: {
+                                XCloudMenuItem { text: "Set GTK Theme"; onClicked: {
                                         root.isOpen = false
                                         Quickshell.execDetached(["nwg-look"])
                                     }
                                 }
-                                xCloudMenuItem { text: "Set QT Theme"; onClicked: {
+                                XCloudMenuItem { text: "Set QT Theme"; onClicked: {
                                         root.isOpen = false
                                         Quickshell.execDetached(["qt6ct"])
                                     }
                                 }
-                                xCloudMenuItem { text: "Refresh GTK Theme"; onClicked: {
+                                XCloudMenuItem { text: "Refresh GTK Theme"; onClicked: {
                                         root.isOpen = false
                                         Quickshell.execDetached(["bash", "-c", Quickshell.env("HOME") + "/.config/hypr/scripts/gtk.sh"])
                                     }
