@@ -3,13 +3,6 @@
 -- Settings
 hl.config({
     general = {
-        col = {
-            active_border = {
-                colors = {"rgba(00ff00ff)", "rgba(00ff00ff)"},
-                angle = 90,
-            },
-            inactive_border = "0x8e00ff00",
-        },
         gaps_in = 5,
         gaps_out = 15,
     },

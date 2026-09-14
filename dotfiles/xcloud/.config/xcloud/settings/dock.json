@@ -1,6 +1,6 @@
 {
     "dock": {
-        "enabled": false,
+        "enabled": true,
         "autohide": false
     },
     "apps": {

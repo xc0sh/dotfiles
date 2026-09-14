@@ -25,8 +25,18 @@ hl.on("hyprland.start", function ()
     -- Start listeners
     hl.exec_cmd("~/.config/xcloud/listeners.sh --startall")
 
-    -- Start waybar
-    hl.exec_cmd(HOME .. "/.config/waybar/launch.sh")
+    -- Start waybar (only when it's the configured status bar engine —
+    -- the Quickshell statusbar is started unconditionally by xcloud-autostart
+    -- below and reads its own enabled flag, so it needs no gating here)
+    local statusbar_engine = "waybar"
+    local sb = io.open(HOME .. "/.config/xcloud/settings/statusbar", "r")
+    if sb then
+        statusbar_engine = sb:read("*l"):match("^%s*(.-)%s*$")
+        sb:close()
+    end
+    if statusbar_engine == "waybar" then
+        hl.exec_cmd(HOME .. "/.config/waybar/launch.sh")
+    end
 
     -- Start polkit daemon
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")

@@ -14,7 +14,7 @@ configuration {
     modi:                       "drun,filebrowser,window,run";
     font:                       "Fira Sans 11";
     show-icons:                 true;
-    icon-theme:                 "Tela-circle-dracula";
+    icon-theme:                 "kora";
     display-drun:                " ";
     display-run:                 " ";
     display-filebrowser:         " ";

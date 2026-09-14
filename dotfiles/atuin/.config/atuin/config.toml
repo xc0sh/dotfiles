@@ -7,3 +7,8 @@
 # tradeoff for the machine you're deploying to.
 auto_sync = false
 update_check = false
+
+# Redact commands that look like they contain tokens/passwords/API keys
+# before they're ever written to history -- same secrets rationale as
+# disabling auto_sync above, applied to local storage too.
+secrets_filter = true
