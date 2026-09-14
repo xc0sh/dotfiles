@@ -38,3 +38,4 @@ noto-fonts-emoji
 prettier
 yamllint
 python-debugpy
+hadolint-bin
