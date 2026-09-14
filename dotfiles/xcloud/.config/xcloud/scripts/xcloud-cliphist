@@ -6,26 +6,18 @@
 #  \____|_|_| .__/|_| |_|_|___/\__|
 #           |_|
 #
-# -----------------------------------------------------
-# Load Launcher
-# -----------------------------------------------------
-launcher=$(cat "$HOME"/.config/xcloud/settings/launcher)
-if [ "$launcher" == "walker" ]; then
-    "$HOME"/.config/walker/launch.sh -m clipboard -N -H
-else
-    case $1 in
-        d)
-            selected=$(cliphist list | rofi -dmenu -replace -config ~/.config/rofi/config-cliphist.rasi)
-            [ -z "$selected" ] && exit 0
-            echo "$selected" | cliphist delete
-        ;;
-        w)
-            cliphist wipe
-        ;;
-        *)
-            selected=$(cliphist list | rofi -dmenu -replace -config ~/.config/rofi/config-cliphist.rasi)
-            [ -z "$selected" ] && exit 0
-            echo "$selected" | cliphist decode | wl-copy
-        ;;
-    esac
-fi
+case $1 in
+    d)
+        selected=$(cliphist list | rofi -dmenu -replace -config ~/.config/rofi/config-cliphist.rasi)
+        [ -z "$selected" ] && exit 0
+        echo "$selected" | cliphist delete
+    ;;
+    w)
+        cliphist wipe
+    ;;
+    *)
+        selected=$(cliphist list | rofi -dmenu -replace -config ~/.config/rofi/config-cliphist.rasi)
+        [ -z "$selected" ] && exit 0
+        echo "$selected" | cliphist decode | wl-copy
+    ;;
+esac

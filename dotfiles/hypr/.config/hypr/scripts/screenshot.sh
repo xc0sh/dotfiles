@@ -16,33 +16,8 @@
 # Screenshots will be stored in $HOME by default.
 # The screenshot will be moved into the screenshot directory
 
-# Defaults
-SAVE_DIR="$HOME/Pictures"
-SAVE_FILENAME="screenshot_$(date +%d%m%Y_%H%M%S).jpg"
-
-# Load Settings
-if [ -f ~/.config/xcloud/settings/screenshot-folder ]; then
-    SAVE_DIR=$(cat ~/.config/xcloud/settings/screenshot-folder)
-fi
-if [ -f ~/.config/xcloud/settings/screenshot-filename ]; then
-    SAVE_FILENAME=$(cat ~/.config/xcloud/settings/screenshot-filename)
-fi
-
-eval screenshot_folder="$SAVE_DIR"
-eval NAME="$SAVE_FILENAME"
-
-# Get image format
-image_format="png"
-extension="${NAME##*.}"
-
-case $extension in
-    "jpg"|"jpeg")
-        image_format="jpeg"
-        ;;
-    "ppm")
-        image_format="ppm"
-        ;;
-esac
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-screenshot-settings"
 
 # Notifications
 # shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
@@ -277,12 +252,18 @@ timer() {
 # hyprshot's own `grab_active_output` geometry expression, replicated so
 # "output"+edit doesn't need hyprshot's process at all).
 #
-# Known gap, not live-testable from here: hyprshot always names its own save
-# file with a .png extension internally; if $NAME is configured with a
-# .jpg/.jpeg/.ppm extension (via settings/screenshot-filename), the
-# "output"/"area" copy/save/copysave paths may not honor that the way
-# "screen" (plain grim, which does respect $image_format) does. Flagged for
-# the first live test, not fixed blind.
+# hyprshot jpg/png gap (was flagged, now root-caused and fixed): hyprshot has
+# no output-format flag at all, and the grim call inside it never passes `-t`
+# either, so it always writes real PNG bytes to whatever filename it's given
+# -- grim does not infer format from the output extension. So "output"/"area"
+# copy/save/copysave paths need an explicit post-conversion step below when a
+# non-png $NAME is configured; "screen" mode is unaffected since it calls
+# grim directly with `-t "$image_format"`.
+_fix_hyprshot_format() {
+    local path="$1"
+    [[ "$image_format" == "png" || ! -f "$path" ]] && return 0
+    magick "$path" "${image_format}:${path}"
+}
 _active_output_geometry() {
     local monitors active_id current
     monitors=$(hyprctl -j monitors)
@@ -315,6 +296,7 @@ _capture() {
                 hyprshot -m output -m active -s --clipboard-only
             else
                 hyprshot -m output -m active -s -o "$screenshot_folder" -f "$NAME"
+                _fix_hyprshot_format "$screenshot_folder/$NAME"
             fi
             ;;
         area)
@@ -322,6 +304,7 @@ _capture() {
                 hyprshot -m region -z -s --clipboard-only
             else
                 hyprshot -m region -z -s -o "$screenshot_folder" -f "$NAME"
+                _fix_hyprshot_format "$screenshot_folder/$NAME"
             fi
             ;;
     esac

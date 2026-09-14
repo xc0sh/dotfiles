@@ -68,6 +68,7 @@ cp -r dotfiles/waybar/.config/waybar ~/.config/waybar
 - No hosted Wiki or Live ISO — this fork covers the dotfiles payload, the installer app, and the settings app.
 - `.config/xcloud/settings/statusbar` supports `waybar`/`quickshell` only (it picks which bar the reload/toggle keybinds act on). `hypr/conf/autostart.lua` starts waybar unconditionally regardless of this setting, so `statusbar.json`'s `enabled: false` (the Quickshell-native bar component's own default) is not a bug.
 - `setup/preflight-opensuse.sh` sources a `setup/_prebuilt.sh` that isn't shipped anywhere in this fork or in the installer app's own payload — its origin is unclear; the sourcing is guarded and warns to stderr and continues instead of crashing. Flagged here rather than silently dropped, since it's a real pre-existing gap (restore the file vs. drop the line is a call for whoever actually needs that step).
+- `hyprland-dotfiles-stable.dotinst` pins `"tag":"2.15.1"` for the installer app's stable channel, but this repo has never actually cut any git tags (`git tag` is empty) — that pin currently resolves to nothing. The rolling manifest (`hyprland-dotfiles.dotinst`, no `tag` field, tracks `main`) is the one that actually works today. Flagged rather than guessed at: fixing this needs either a real tagging workflow (cut `2.15.1`/`2.16` tags retroactively at the right commits) or dropping the stable channel until one exists — a release-process decision, not a one-line fix.
 
 ## Credits
 

@@ -6,39 +6,14 @@
 
 # --- Configuration ---
 
-# Defaults
-SAVE_DIR="$HOME/Pictures"
-SAVE_FILENAME="screenshot_$(date +%d%m%Y_%H%M%S).jpg"
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-screenshot-settings"
 
-# Load Settings
-if [ -f ~/.config/xcloud/settings/screenshot-folder ]; then
-    SAVE_DIR=$(cat ~/.config/xcloud/settings/screenshot-folder)
-fi
-if [ -f ~/.config/xcloud/settings/screenshot-filename ]; then
-    SAVE_FILENAME=$(cat ~/.config/xcloud/settings/screenshot-filename)
-fi
-
-# Generate path
-eval screenshot_folder="$SAVE_DIR"
-eval filename="$SAVE_FILENAME"
-# shellcheck disable=SC2154 # both assigned above via eval, opaque to static analysis
-path="$screenshot_folder/$filename"
-
-# Get image format
-image_format="png"
-extension="${filename##*.}"
-
-case $extension in
-    "jpg"|"jpeg")
-        image_format="jpeg"
-        ;;
-    "ppm")
-        image_format="ppm"
-        ;;
-esac
+# shellcheck disable=SC2154 # screenshot_folder/NAME assigned above via eval, opaque to static analysis
+path="$screenshot_folder/$NAME"
 
 # Create Screenshot folder
-mkdir -p "$SAVE_DIR"
+mkdir -p "$screenshot_folder"
 
 # Handle the screenshot
 take_screenshot() {
@@ -52,6 +27,7 @@ take_screenshot() {
 
     echo "📸 Capturing $mode..."
 
+    # shellcheck disable=SC2154 # image_format set by the sourced xcloud-screenshot-settings
     case $mode in
         "fullscreen")
             grim -t "$image_format" "$path"

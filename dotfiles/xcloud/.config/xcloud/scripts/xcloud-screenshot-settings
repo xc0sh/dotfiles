@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Shared screenshot save-location/filename/format resolution, sourced by both
+# hypr/scripts/screenshot.sh and xcloud-screenshot -- kept in one place so the
+# two don't drift out of sync with each other.
+# shellcheck disable=SC2034 # screenshot_folder/NAME/image_format are read by whichever script sources this file
+
+# Defaults
+SAVE_DIR="$HOME/Pictures"
+SAVE_FILENAME="screenshot_$(date +%d%m%Y_%H%M%S).jpg"
+
+# Load Settings
+if [ -f ~/.config/xcloud/settings/screenshot-folder ]; then
+    SAVE_DIR=$(cat ~/.config/xcloud/settings/screenshot-folder)
+fi
+if [ -f ~/.config/xcloud/settings/screenshot-filename ]; then
+    SAVE_FILENAME=$(cat ~/.config/xcloud/settings/screenshot-filename)
+fi
+
+eval screenshot_folder="$SAVE_DIR"
+eval NAME="$SAVE_FILENAME"
+
+# Get image format
+image_format="png"
+extension="${NAME##*.}"
+
+case $extension in
+    "jpg"|"jpeg")
+        image_format="jpeg"
+        ;;
+    "ppm")
+        image_format="ppm"
+        ;;
+esac

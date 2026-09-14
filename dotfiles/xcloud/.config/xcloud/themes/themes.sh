@@ -3,29 +3,15 @@
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # -----------------------------------------------------
-# Load Launcher
-# -----------------------------------------------------
-launcher=$(cat "$HOME"/.config/xcloud/settings/launcher)
-
-# -----------------------------------------------------
 # Themes
 # -----------------------------------------------------
-if command -v walker > /dev/null 2>&1; then
-    # Walker installed
-    THEME_OPTIONS=$(find "$SCRIPT_DIR" -maxdepth 1 -mindepth 1 -type d | awk -F/ '{ print $NF }')
-else
-    # Walker not installed
-    THEME_OPTIONS=$(find "$SCRIPT_DIR" -maxdepth 1 -mindepth 1 -type d -not -name "*walker*" | awk -F/ '{ print $NF }')
-fi
+THEME_OPTIONS=$(find "$SCRIPT_DIR" -maxdepth 1 -mindepth 1 -type d | awk -F/ '{ print $NF }')
+
 # -----------------------------------------------------
 # Start Launcher
 # -----------------------------------------------------
 
-if [ "$launcher" == "walker" ]; then
-    selected_theme=$("$HOME"/.config/walker/launch.sh -d -N -H -p "Search Theme" <<<"$THEME_OPTIONS")
-else
-    selected_theme=$(rofi -dmenu -replace -config ~/.config/rofi/config-themes.rasi -i -no-show-icons -l 5 -width 30 <<<"$THEME_OPTIONS")
-fi
+selected_theme=$(rofi -dmenu -replace -config ~/.config/rofi/config-themes.rasi -i -no-show-icons -l 5 -width 30 <<<"$THEME_OPTIONS")
 
 # -----------------------------------------------------
 # Source selected theme

@@ -316,12 +316,12 @@
     },{
       "name": "Launcher",
       "id": "system_launcher",
-      "instructions": "Please select the launcher. Walker needs to be installed separately.",
+      "instructions": "Please select the launcher.",
       "file": "~/.config/xcloud/settings/launcher",
       "type": "choose",
       "mode": "overwrite",
       "default": "rofi",
-      "options": ["rofi", "walker"]
+      "options": ["rofi"]
     }]
   }
 ]
