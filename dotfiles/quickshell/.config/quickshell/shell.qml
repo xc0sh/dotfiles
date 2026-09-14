@@ -10,6 +10,7 @@ import "WallpaperApp"
 import "StatusbarApp"
 import "DockApp"
 import "OsdApp"
+import "LauncherApp"
 import "CustomTheme"
 
 ShellRoot {
@@ -33,4 +34,7 @@ ShellRoot {
     // Creates the dock window only while the dock is enabled in dock.json.
     DockLoader {}
     OsdWindow {}
+    // P2.1: opt-in native launcher, toggled via `qs ipc call launcher toggle`
+    // -- see launcher.sh for the rofi/quickshell setting branch.
+    LauncherWindow {}
 }
