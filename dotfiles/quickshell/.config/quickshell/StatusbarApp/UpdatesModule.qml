@@ -1,19 +1,20 @@
 import Quickshell
-import Quickshell.Io
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
 import qs.CustomTheme
+import qs.StatusbarApp
 
-// Shows the number of pending system updates next to a package icon. The count
-// comes from xcloud-check-system-updates (the same script the Waybar module
-// uses), polled every 30 minutes. The module hides itself completely while no
-// updates are available; clicking it launches the xCloud update routine.
+// Shows the number of pending system updates next to a package icon. The
+// count, its polling and its "updates" IPC target all live in UpdatesState
+// (a singleton, since P2.4 made this module exist once per monitor -- see
+// that file for why). The module hides itself completely while no updates
+// are available; clicking it launches the xCloud update routine.
 Rectangle {
     id: updates
 
     // Number of available updates (0 = nothing pending, module hidden).
-    property int count: 0
+    readonly property int count: UpdatesState.count
     // True when there is nothing to show. The right Repeater reads this to
     // collapse the layout slot, and rebuildNavItems skips collapsed modules.
     // It is deliberately independent of the (effective) `visible` property:
@@ -89,47 +90,5 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: updates.activate()
-    }
-
-    // Parse the script's JSON output ({"text": "69", ...}); an empty line means
-    // zero updates and the script prints nothing.
-    function refresh(): void {
-        updatesProc.running = false
-        updatesProc.running = true
-    }
-
-    Process {
-        id: updatesProc
-        command: ["bash", "-c",
-            Quickshell.env("HOME") + "/.config/xcloud/scripts/xcloud-check-system-updates"]
-        running: true
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    let raw = this.text.trim()
-                    updates.count = raw ? parseInt(JSON.parse(raw).text) || 0 : 0
-                } catch (e) {
-                    updates.count = 0
-                }
-            }
-        }
-    }
-
-    // Re-check on the same 1800s interval as the Waybar module.
-    Timer {
-        interval: 1800 * 1000
-        running: true
-        repeat: true
-        onTriggered: updates.refresh()
-    }
-
-    // Let external scripts drive the module via `qs ipc call updates ...`.
-    // `reset` clears the count immediately (e.g. right after an update run,
-    // so the module hides itself without waiting for the next poll); `refresh`
-    // re-runs the check script on demand.
-    IpcHandler {
-        target: "updates"
-        function reset(): void { updates.count = 0 }
-        function refresh(): void { updates.refresh() }
     }
 }
