@@ -1,14 +1,28 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
 import qs.CustomTheme
+import qs.StatusbarApp
 
+// One instance per connected monitor -- instantiated via Variants over
+// Quickshell.screens in StatusbarLoader.qml (P2.4), which sets `screen` and
+// declares the required `modelData` property. Settings and the "statusbar"
+// IPC target are shared (StatusbarSettings, a singleton -- see that file and
+// StatusbarLoader for why); barExpanded/keyboard-nav/hover stay local to each
+// instance, since each monitor's bar should expand/collapse independently.
 PanelWindow {
     id: root
+
+    // The Hyprland monitor this instance is showing on, and whether it is
+    // currently Hyprland's focused monitor -- used to decide whether this
+    // instance should react to the focus/expand/collapse IPC calls, which
+    // are broadcast to every instance (see the Connections block below).
+    // Mirrors overview/modules/overview/Overview.qml's identical pattern.
+    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+    readonly property bool monitorIsFocused: Hyprland.focusedMonitor?.id === monitor?.id
 
     // --- WAYLAND CONFIGURATION ---
     WlrLayershell.layer: WlrLayer.Top
@@ -32,192 +46,21 @@ PanelWindow {
     }
 
     // --- USER SETTINGS ---
-    // One of two files is the "master" that feeds the settings object below:
-    //
-    //   1. ~/.config/xcloud-statusbar/statusbar.json — the user override. When this
-    //      file EXISTS it is the master: every value is read from it and the
-    //      Sidebar switches write their changes (enabled / alwaysExpanded) back
-    //      into it. The shipped file is ignored while it exists.
-    //   2. ~/.config/xcloud/settings/statusbar.json — the shipped fallback, used
-    //      only when the override file is absent. It carries the dynamic state
-    //      the SidebarApp writes (bar.enabled and bar.alwaysExpanded).
-    //
-    // The active master file is merged over the built-in defaults, so a partial
-    // or entirely missing file still leaves every value defined.
-    readonly property var defaultSettings: ({
-        "bar":    { "height": 40, "reservedHeight": 72, "enabled": true,
-                    "alwaysExpanded": true, "autohide": false, "hideDelay": 400 },
-        "pill":   { "collapsedWidth": 0, "expandedWidth": 680, "radius": 12, "animationDuration": 350 },
-        "modules":{ "left": ["terminal", "workspaces"],
-                    "center": ["launcher", "clock", "swaync"],
-                    "right": ["updates", "battery", "powerprofile", "volume", "systemtray", "logo", "power"] },
-        "border": { "width": 2, "colorTop": "", "colorBottom": "" },
-        "opacity":{ "collapsed": 0.6, "expanded": 0.8 },
-        "clock":  { "format": "HH:mm", "dateFormat": "ddd, dd MMM" },
-        "workspaces": { "count": 5 }
-    })
+    // Settings loading/merging/persistence and the "statusbar" IPC target now
+    // live in StatusbarSettings (a singleton) and StatusbarLoader
+    // respectively -- see those files. This instance just binds to them.
+    readonly property var settings: StatusbarSettings.settings
+    readonly property bool ready: StatusbarSettings.ready
 
-    property var settings: defaultSettings
-
-    // True while the user override file is present. Decides which file is the
-    // master for both reads (applySettings) and writes (setEnabled /
-    // setAlwaysExpanded).
-    property bool overrideExists: false
-
-    // Both settings files have reported back (loaded or missing), so `settings`
-    // holds the values from disk rather than the built-in defaults.
-    //
-    // The window stays invisible until then, so the layer surface is created
-    // once with the values from disk. The files report asynchronously, so
-    // without the gate the bar is mapped from the defaults — autohide off, space
-    // reserved — and only corrects itself a moment later. Hyprland does not
-    // reliably pick up the exclusive zone dropping back to 0 that soon after the
-    // layer surface is created, which would leave an autohiding bar holding a
-    // 52px gap open at the top of the screen for the session.
-    readonly property bool ready: overrideResolved && settingsResolved
-    property bool overrideResolved: false
-    property bool settingsResolved: false
-
-    // User override / master file. When it loads it becomes the source of truth;
-    // when it is absent (loadFailed) the shipped file takes over. printErrors is
-    // off so a missing override does not log an error on every startup/reload.
-    FileView {
-        id: overrideFile
-        path: Quickshell.env("HOME") + "/.config/xcloud-statusbar/statusbar.json"
-        blockLoading: true
-        printErrors: false
-        // The resolved flags are set last, after the values are in place: they
-        // release the `ready` gate below, and a binding fires the moment it is
-        // assigned.
-        onLoaded: {
-            root.overrideExists = true
-            root.applySettings()
-            root.overrideResolved = true
-        }
-        onLoadFailed: {
-            root.overrideExists = false
-            root.applySettings()
-            root.overrideResolved = true
-        }
-    }
-
-    // Shipped fallback holding the dynamic state (enabled / alwaysExpanded), used
-    // only when the override file is absent. Changes are not picked up
-    // automatically; trigger a re-read explicitly with
-    //   qs ipc call statusbar reload
-    FileView {
-        id: settingsFile
-        path: Quickshell.env("HOME") + "/.config/xcloud/settings/statusbar.json"
-        blockLoading: true
-        onLoaded: { root.applySettings(); root.settingsResolved = true }
-        onLoadFailed: { root.applySettings(); root.settingsResolved = true }
-    }
-
-    // The active master file: the override when it exists, otherwise the shipped
-    // file. The Sidebar switches write here and applySettings reads from here.
-    function masterFile() {
-        return root.overrideExists ? overrideFile : settingsFile
-    }
-
-    // Force a re-read of both settings files and re-apply them. reload()
-    // refreshes each FileView from disk (re-firing onLoaded/onLoadFailed, which
-    // re-runs applySettings with an up-to-date overrideExists).
-    function reloadSettings(): void {
-        overrideFile.reload()
-        settingsFile.reload()
-        applySettings()
-    }
-
-    // Parse a settings JSON document that may contain a /* ... */ comment block
-    // and — being hand-edited — trailing commas before a closing } or ], which
-    // strict JSON.parse rejects. Returns the parsed object, or undefined when the
-    // text is empty or cannot be parsed even after that cleanup. Never throws.
-    function parseSettings(src) {
-        if (!src)
-            return undefined
-        let raw = src.replace(/\/\*[\s\S]*?\*\//g, "")
-        if (raw.trim() === "")
-            return undefined
-        try {
-            return JSON.parse(raw)
-        } catch (e) {
-            try {
-                // Tolerate trailing commas: ",}" / ",]" (optional whitespace).
-                return JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1"))
-            } catch (e2) {
-                console.warn("statusbar settings: could not parse a file,"
-                    + " ignoring it:", e2)
-                return undefined
-            }
-        }
-    }
-
-    // Merge one JSON document (given as text) over an already-built settings
-    // object, key by key. Empty or unparseable text is ignored so a
-    // missing/partial file never clears previously merged values.
-    function mergeSettings(merged, src): void {
-        let parsed = parseSettings(src)
-        if (parsed === undefined)
-            return
-        for (let group in parsed)
-            for (let key in parsed[group])
-                if (merged[group] !== undefined)
-                    merged[group][key] = parsed[group][key]
-    }
-
-    // Rebuild the settings object: the built-in defaults with the master file
-    // merged on top. An explicit masterText can be passed (e.g. right after a
-    // switch writes the master file) so the merge does not depend on the FileView
-    // buffer having refreshed yet.
-    function applySettings(masterText): void {
-        let merged = JSON.parse(JSON.stringify(root.defaultSettings))
-        let text = (masterText !== undefined) ? masterText : root.masterFile().text()
-        mergeSettings(merged, text)
-        root.settings = merged
-    }
-
-    // Persist a bar.<key> boolean into the master file and return the updated
-    // text. A regex replace is used when the key is already present (so the
-    // file's formatting/comments are kept); when the key is missing (e.g. an
-    // override file that did not list it) it falls back to a JSON rewrite of the
-    // parsed document. If the file cannot be parsed at all the write is skipped
-    // rather than replaced with an empty object, so a malformed hand-edited
-    // override is never wiped — its current text is returned unchanged.
-    function persistBarFlag(key, on): string {
-        let file = root.masterFile()
-        let src = file.text()
-        let re = new RegExp('("' + key + '"\\s*:\\s*)(true|false)')
-        let updated
-        if (re.test(src)) {
-            updated = src.replace(re, "$1" + (on ? "true" : "false"))
-        } else {
-            let obj = root.parseSettings(src)
-            if (obj === undefined && src && src.trim() !== "") {
-                // Unparseable and non-empty: don't destroy the user's file.
-                console.warn("statusbar settings: master file is not valid"
-                    + " JSON; leaving it untouched instead of overwriting.")
-                return src
-            }
-            if (typeof obj !== "object" || obj === null)
-                obj = {}
-            if (obj.bar === undefined)
-                obj.bar = {}
-            obj.bar[key] = on
-            updated = JSON.stringify(obj, null, 4) + "\n"
-        }
-        file.setText(updated)
-        return updated
-    }
-
-    property int barHeight: settings.bar.height
+    readonly property int barHeight: StatusbarSettings.barHeight
     // Constant vertical space reserved for the bar (windows tile below this).
-    property int reservedHeight: settings.bar.reservedHeight
+    readonly property int reservedHeight: StatusbarSettings.reservedHeight
 
     // Whether the bar is shown. The "enabled" flag in statusbar.json is the
     // single source of truth; it is toggled from the SidebarApp switch and via
     // "qs ipc call statusbar toggle", persisted back to the file, and survives
     // restarts. Kept as a binding so a settings reload updates it for free.
-    property bool barEnabled: settings.bar.enabled
+    readonly property bool barEnabled: StatusbarSettings.barEnabled
 
     // Hide completely and reserve no space when disabled. `ready` holds the
     // window back until the settings files have been read (see above).
@@ -227,31 +70,20 @@ PanelWindow {
     // it floats over the windows and slides in on demand.
     exclusiveZone: (barEnabled && !autohide) ? reservedHeight - 20 : 0
 
-    // Persist the enabled state into the master file (override when present,
-    // otherwise the shipped file) and apply it. applySettings re-parses the
-    // updated text, which updates settings.bar.enabled and therefore the
-    // barEnabled binding above.
-    function setEnabled(on: bool): void {
-        applySettings(persistBarFlag("enabled", on))
-    }
-
-    // Keep the pill expanded regardless of hover. Set via IPC
-    // ("qs ipc call statusbar focus") which is bound to SUPER + SPACE in
-    // Hyprland, and cleared on Escape, after running a module, or when the
-    // focus grab is released because the user interacted with another window.
+    // Keep the pill expanded regardless of hover. Set on the focused monitor's
+    // instance via IPC ("qs ipc call statusbar focus", bound to SUPER + SPACE
+    // in Hyprland -- see the Connections block below) and cleared on Escape,
+    // after running a module, or when the focus grab is released because the
+    // user interacted with another window. Deliberately per-instance, not
+    // read from StatusbarSettings: each monitor's bar expands/collapses for
+    // keyboard nav independently of the others.
     property bool barExpanded: false
 
     // When set in statusbar.json the pill never collapses: it stays in its
     // expanded (full-width) state independent of hover or the IPC toggle. This
     // is purely visual — unlike barExpanded it does not grab the keyboard — so
     // the left/right module areas remain permanently visible.
-    property bool alwaysExpanded: settings.bar.alwaysExpanded
-
-    // Persist the alwaysExpanded state into the master file and apply it.
-    // Mirrors setEnabled.
-    function setAlwaysExpanded(on: bool): void {
-        applySettings(persistBarFlag("alwaysExpanded", on))
-    }
+    readonly property bool alwaysExpanded: StatusbarSettings.alwaysExpanded
 
     // --- AUTOHIDE ---
     // When "autohide" is set in statusbar.json the bar slides up out of the
@@ -260,12 +92,28 @@ PanelWindow {
     // (SUPER + SPACE), and while a tray menu is open. A hiding bar reserves no
     // space, so windows tile up to the screen edge. Toggled from the SidebarApp
     // switch and via "qs ipc call statusbar autohideToggle".
-    property bool autohide: settings.bar.autohide
+    readonly property bool autohide: StatusbarSettings.autohide
 
-    // Persist the autohide state into the master file and apply it. Mirrors
-    // setEnabled.
-    function setAutohide(on: bool): void {
-        applySettings(persistBarFlag("autohide", on))
+    // React to the focus/expand/collapse IPC calls (routed via
+    // StatusbarLoader's IpcHandler, since only one "statusbar" target can
+    // exist -- see StatusbarSettings). Every instance receives the signal;
+    // only the one on Hyprland's currently focused monitor acts on it.
+    Connections {
+        target: StatusbarSettings
+        function onFocusRequested(): void {
+            if (!root.monitorIsFocused)
+                return
+            root.barExpanded = true
+            keyHandler.forceActiveFocus()
+        }
+        function onExpandToggleRequested(): void {
+            if (root.monitorIsFocused)
+                root.barExpanded = !root.barExpanded
+        }
+        function onCollapseRequested(): void {
+            if (root.monitorIsFocused)
+                root.barExpanded = false
+        }
     }
 
     // Slid into view when autohide is off, while the pointer is held on the bar,
@@ -469,41 +317,6 @@ PanelWindow {
         // Collapse so the keyboard is handed back to the (possibly newly
         // launched) application instead of staying captured by the bar.
         root.barExpanded = false
-    }
-
-    IpcHandler {
-        target: "statusbar"
-        function toggle(): void { root.setEnabled(!root.settings.bar.enabled) }
-        // Named enable/disable rather than show/hide: "show" is a reserved
-        // subcommand of "qs ipc" and would never reach the function.
-        function enable(): void { root.setEnabled(true) }
-        function disable(): void { root.setEnabled(false) }
-        // Persist and apply the alwaysExpanded (permanently expanded) mode,
-        // toggled from the SidebarApp switch.
-        function alwaysExpand(): void { root.setAlwaysExpanded(true) }
-        function autoCollapse(): void { root.setAlwaysExpanded(false) }
-        // Persist and apply the autohide mode, toggled from the SidebarApp
-        // switch and from the xcloud-toggle-statusbar-autohide script.
-        function autohideOn(): void { root.setAutohide(true) }
-        function autohideOff(): void { root.setAutohide(false) }
-        function autohideToggle(): void {
-            root.setAutohide(!root.settings.bar.autohide)
-        }
-        // Re-read statusbar.json from disk (used by the SidebarApp switch).
-        function refresh(): void { root.reloadSettings() }
-        // Expand the bar (if needed) and grab the keyboard for navigation.
-        // Bound to SUPER + SPACE. Idempotent: when the bar is already expanded
-        // it only re-grabs keyboard focus instead of toggling back to collapsed,
-        // so the keybinding always lands in keyboard-navigation mode.
-        function focus(): void {
-            root.barExpanded = true
-            keyHandler.forceActiveFocus()
-        }
-        // Toggle between collapsed and expanded mode.
-        function expand(): void { root.barExpanded = !root.barExpanded }
-        function collapse(): void { root.barExpanded = false }
-        // Re-read statusbar.json and apply the changes.
-        function reload(): void { root.reloadSettings() }
     }
 
     color: "transparent"
