@@ -2,6 +2,7 @@ pragma Singleton
 
 import Quickshell
 import Quickshell.Io
+import QtQuick
 
 // Shared pending-updates count and its "updates" IPC target.
 //
