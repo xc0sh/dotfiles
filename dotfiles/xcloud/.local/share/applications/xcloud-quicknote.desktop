@@ -2,7 +2,7 @@
 Type=Application
 Name=Quick Note
 Comment=Capture a single timestamped line into today's daily note
-Exec=bash -lc '~/.config/xcloud/scripts/xcloud-quicknote'
+Exec=bash -lc "~/.config/xcloud/scripts/xcloud-quicknote"
 Icon=nvim
 Terminal=false
 Categories=Utility;

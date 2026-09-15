@@ -2,7 +2,7 @@
 Type=Application
 Name=Notebook
 Comment=Open the personal notebook (~/.docs) in Neovim
-Exec=bash -lc '~/.config/xcloud/scripts/xcloud-notes'
+Exec=bash -lc "~/.config/xcloud/scripts/xcloud-notes"
 Icon=nvim
 Terminal=false
 Categories=Utility;
