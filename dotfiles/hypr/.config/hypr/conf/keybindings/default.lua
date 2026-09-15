@@ -85,6 +85,8 @@ hl.bind(mainMod .. " + CTRL + D", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xclo
 hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xcloud-toggle-dock-autohide"), { description = "Toggle Dock Autohide" })
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("~/.config/hypr/scripts/loadconfig.sh"), { description = "Reload hyprland config" })
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xcloud-cliphist"), { description = "Open clipboard manager" })
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xcloud-notes"), { description = "Open notebook" })
+hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xcloud-quicknote"), { description = "Quick note capture" })
 hl.bind(mainMod .. " + CTRL + T", hl.dsp.exec_cmd("~/.config/waybar/themeswitcher.sh"), { description = "Open waybar theme switcher" })
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("~/.config/xcloud/scripts/xcloud-toggle-theme"), { description = "Toggle between light and dark mode" })
 hl.bind(mainMod .. " + CTRL + S", hl.dsp.exec_cmd("qs ipc call sidebar toggle"), { description = "Open xCloud Sidebar widget" })

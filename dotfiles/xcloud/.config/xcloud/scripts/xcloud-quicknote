@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Fast single-line capture into today's personal daily note, without
+# opening full Neovim.
+mkdir -p ~/.docs/daily
+kitty --class quicknote -e bash -c '
+    read -e -p "note: " line
+    [ -n "$line" ] && printf "%s %s\n" "$(date +%H:%M)" "$line" >> ~/.docs/daily/"$(date +%F)".md
+'

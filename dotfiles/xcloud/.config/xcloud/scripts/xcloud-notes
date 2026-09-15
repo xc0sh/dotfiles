@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Open the notebook in Neovim. `xcloud-notes shared` opens the shared vault
+# at /opt/docs; anything else (including no argument) opens the personal
+# vault at ~/.docs.
+case $1 in
+    shared)
+        vault=/opt/docs
+    ;;
+    *)
+        vault=~/.docs
+    ;;
+esac
+
+kitty --class notebook -d "$vault" nvim

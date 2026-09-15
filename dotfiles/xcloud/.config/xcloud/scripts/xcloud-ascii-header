@@ -21,6 +21,5 @@ fi
 
 lines=$(cat ~/figlet.txt)
 wl-copy "$lines"
-xclip -sel clip ~/figlet.txt
 
 echo "Text copied to clipboard!"
