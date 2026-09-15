@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Notebook (Shared)
+Comment=Open the shared notebook (/opt/docs) in Neovim
+Exec=bash -lc '~/.config/xcloud/scripts/xcloud-notes shared'
+Icon=nvim
+Terminal=false
+Categories=Utility;
+NoDisplay=false
