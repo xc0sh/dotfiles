@@ -18,6 +18,8 @@
 
 # shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-screenshot-settings"
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-screenshot-capture"
 
 # Notifications
 # shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
@@ -28,7 +30,7 @@ NOTIFICATION_ICON="camera-photo-symbolic"
 # Quick instant mode: full screen
 take_instant_full() {
     # shellcheck disable=SC2154 # screenshot_folder assigned above via eval, opaque to static analysis
-    grim -t "$image_format" "$NAME" && notify_user \
+    xcloud_grim_capture "" "$NAME" && notify_user \
         --a "${APP_NAME}" \
         --i "${NOTIFICATION_ICON}" \
         --s "Screenshot saved" \
@@ -57,7 +59,7 @@ take_instant_area() {
     trap - EXIT
 
     # capture and notify
-    grim -g "$region" -t "$image_format" "$NAME" && notify_user \
+    xcloud_grim_capture "$region" "$NAME" && notify_user \
         --a "${APP_NAME}" \
         --i "${NOTIFICATION_ICON}" \
         --s "Screenshot saved" \
@@ -287,7 +289,7 @@ _capture() {
     mkdir -p "$screenshot_folder"
     case "$mode" in
         screen)
-            grim -t "$image_format" "$screenshot_folder/$NAME"
+            xcloud_grim_capture "" "$screenshot_folder/$NAME"
             [[ "$action" == "copy" || "$action" == "copysave" ]] && wl-copy --type "image/$image_format" < "$screenshot_folder/$NAME"
             [[ "$action" == "copy" ]] && rm -f "$screenshot_folder/$NAME"
             ;;

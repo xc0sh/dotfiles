@@ -8,6 +8,8 @@
 
 # shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
 source "$HOME/.config/xcloud/scripts/xcloud-screenshot-settings"
+# shellcheck disable=SC1091 # sourced at runtime via $HOME; not resolvable statically
+source "$HOME/.config/xcloud/scripts/xcloud-screenshot-capture"
 
 # shellcheck disable=SC2154 # screenshot_folder/NAME assigned above via eval, opaque to static analysis
 path="$screenshot_folder/$NAME"
@@ -27,21 +29,20 @@ take_screenshot() {
 
     echo "📸 Capturing $mode..."
 
-    # shellcheck disable=SC2154 # image_format set by the sourced xcloud-screenshot-settings
     case $mode in
         "fullscreen")
-            grim -t "$image_format" "$path"
+            xcloud_grim_capture "" "$path"
             ;;
         "area")
             # slurp allows UI selection
             GEOM=$(slurp)
             [ -z "$GEOM" ] && exit 0 # Handle ESC/Cancel
-            grim -g "$GEOM" -t "$image_format" "$path"
+            xcloud_grim_capture "$GEOM" "$path"
             ;;
         "window")
             # Hyprland specific geometry
             GEOM=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
-            grim -g "$GEOM" -t "$image_format" "$path"
+            xcloud_grim_capture "$GEOM" "$path"
             ;;
     esac
 
