@@ -1,9 +1,0 @@
-// Wayland clipboard integration -- mouse_mode + copy_clipboard "system" gives
-// normal drag-select-and-release-to-system-clipboard copy behavior, no
-// prefix key or explicit yank needed.
-copy_command "wl-copy"
-copy_clipboard "system"
-
-mouse_mode true
-pane_frames true
-default_layout "compact"
