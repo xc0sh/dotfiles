@@ -1,17 +1,78 @@
 #!/usr/bin/env bash
 
+# Layer-shell surfaces and standalone daemons (waybar, the Quickshell shell,
+# swaync, hypridle, the wallpaper daemon, the cliphist watcher, the polkit
+# agent) have no toplevel window, so a `hyprctl clients` SIGTERM sweep can't
+# reach them. Left running across a logout/reboot/poweroff, they hold onto
+# sockets/D-Bus names/cursor themes that the next session's copies of the
+# same daemons then collide with, which is what actually freezes a re-login
+# rather than starting cleanly. Mirrors the `killall qs` already used by
+# xcloud-autostart on startup for the same reason.
+_terminate_background_daemons() {
+    echo ":: Stopping background daemons"
+    killall qs 2>/dev/null
+    pkill -x waybar 2>/dev/null
+    pkill -x swaync 2>/dev/null
+    pkill -x hypridle 2>/dev/null
+    pkill -x awww-daemon 2>/dev/null
+    pkill -x wl-paste 2>/dev/null
+    pkill -f polkit-gnome-authentication-agent 2>/dev/null
+    # Same class of gap: these are long-running background loops (wallpaper
+    # rotation, day/night hyprsunset scheduling, coffee mode's re-enable
+    # timer) with no toplevel window either, and logind's default
+    # KillUserProcesses=no means they'd otherwise survive a logout.
+    pkill -f xcloud-wallpaper-automation 2>/dev/null
+    pkill -f xcloud-hyprsunset-scheduler 2>/dev/null
+    pkill -f xcloud-coffee-mode 2>/dev/null
+    return 0
+}
+
+# SIGTERMs every toplevel Hyprland client (waiting up to 5s each), then
+# sweeps the headless daemons above. Only the teardown-class actions
+# (logout/reboot/poweroff) call this -- lock/suspend/hibernate leave the
+# session running, so nothing needs to die for those.
+_terminate_clients() {
+    local timeout=5 client_pids pid start_time current_time elapsed_time
+
+    client_pids=$(hyprctl clients -j | jq -r '.[] | .pid')
+
+    for pid in $client_pids; do
+        echo ":: Sending SIGTERM to PID $pid"
+        kill -15 "$pid" 2>/dev/null
+    done
+
+    start_time=$(date +%s)
+    for pid in $client_pids; do
+        while kill -0 "$pid" 2>/dev/null; do
+            current_time=$(date +%s)
+            elapsed_time=$((current_time - start_time))
+            if [ "$elapsed_time" -ge "$timeout" ]; then
+                echo ":: Timeout reached."
+                break 2
+            fi
+            echo ":: Waiting for PID $pid to terminate..."
+            sleep 1
+        done
+        echo ":: PID $pid has terminated."
+    done
+
+    bash "$HOME/.config/xcloud/listeners.sh" --stopall
+    _terminate_background_daemons
+}
+
 # 1. Define fallbacks as explicit functions to prevent quote-stripping issues
-lock_action()     { pidof hyprlock || hyprlock; }
-suspend_action()  { systemctl suspend; }
-logout_action()   { hyprctl dispatch 'hl.dsp.exit()'; }
-reboot_action()   { systemctl reboot; }
-poweroff_action() { systemctl poweroff; }
+lock_action()      { pidof hyprlock || hyprlock; }
+suspend_action()   { systemctl suspend; }
+hibernate_action() { systemctl hibernate; }
+logout_action()    { _terminate_clients; sleep 0.5; hyprctl dispatch 'hl.dsp.exit()'; sleep 2; }
+reboot_action()    { _terminate_clients; sleep 0.5; systemctl reboot; }
+poweroff_action()  { _terminate_clients; sleep 0.5; systemctl poweroff; }
 
 # 2. Dynamic Check: If hyprshutdown is present, override the functions directly
 if command -v hyprshutdown &> /dev/null; then
-    logout_action()   { hyprshutdown; }
-    reboot_action()   { hyprshutdown -t 'Restarting...' --post-cmd 'reboot'; }
-    poweroff_action() { hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'; }
+    logout_action()   { _terminate_clients; sleep 0.5; hyprshutdown; }
+    reboot_action()   { _terminate_clients; sleep 0.5; hyprshutdown -t 'Restarting...' --post-cmd 'reboot'; }
+    poweroff_action() { _terminate_clients; sleep 0.5; hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'; }
 fi
 
 # Help menu output
@@ -24,6 +85,7 @@ A capsule wrapper for system power management features.
 Options:
   -l, --lock        Lock the screen using hyprlock
   -s, --suspend     Suspend the system via systemctl
+  -b, --hibernate   Hibernate the system via systemctl
   -e, --logout      Gracefully exit the desktop environment
   -r, --reboot      Reboot the machine
   -p, --poweroff    Power off the machine completely
@@ -38,6 +100,9 @@ case "$1" in
         ;;
     -s|--suspend)
         suspend_action
+        ;;
+    -b|--hibernate)
+        hibernate_action
         ;;
     -e|--logout)
         logout_action
