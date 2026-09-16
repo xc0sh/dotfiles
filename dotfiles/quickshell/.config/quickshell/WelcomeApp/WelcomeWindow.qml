@@ -413,7 +413,7 @@ FloatingWindow {
                             ListElement { keys: "Super + Enter"; desc: "to open the terminal" }
                             ListElement { keys: "Super + B"; desc: "to open the browser" }
                             ListElement { keys: "Super + Q"; desc: "to close the active window" }
-                            ListElement { keys: "Super + CTRL + Enter"; desc: "to open the application launcher" }
+                            ListElement { keys: "Super + Space"; desc: "to open the application launcher" }
                             ListElement { keys: "Super + CTRL + S"; desc: "to open the sidebar" }
                             ListElement { keys: "Super + CTRL + W"; desc: "to set a wallpaper" }
                         }

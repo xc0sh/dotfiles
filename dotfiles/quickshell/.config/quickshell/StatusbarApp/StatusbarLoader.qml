@@ -38,7 +38,7 @@ Scope {
         // Re-read statusbar.json from disk (used by the SidebarApp switch).
         function refresh(): void { StatusbarSettings.reloadSettings() }
         // Expand the bar on the focused monitor (if needed) and grab the
-        // keyboard for navigation. Bound to SUPER + SPACE.
+        // keyboard for navigation. Bound to SUPER + ALT + SPACE.
         function focus(): void { StatusbarSettings.focusRequested() }
         // Toggle between collapsed and expanded mode on the focused monitor.
         function expand(): void { StatusbarSettings.expandToggleRequested() }

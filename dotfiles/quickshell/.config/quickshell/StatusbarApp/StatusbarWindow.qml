@@ -35,7 +35,7 @@ PanelWindow {
     // back to the app (and collapses the bar). Leave the layer-shell mode at its
     // default (None) so the two mechanisms don't fight.
 
-    // Grabs the keyboard for the bar while it is expanded so SUPER + SPACE can
+    // Grabs the keyboard for the bar while it is expanded so SUPER + ALT + SPACE can
     // drive Left/Right/Return navigation, and releases it the moment the user
     // interacts with another window (clicking/entering an app) — which returns
     // the keyboard to that app and collapses the bar.
@@ -71,7 +71,7 @@ PanelWindow {
     exclusiveZone: (barEnabled && !autohide) ? reservedHeight - 20 : 0
 
     // Keep the pill expanded regardless of hover. Set on the focused monitor's
-    // instance via IPC ("qs ipc call statusbar focus", bound to SUPER + SPACE
+    // instance via IPC ("qs ipc call statusbar focus", bound to SUPER + ALT + SPACE
     // in Hyprland -- see the Connections block below) and cleared on Escape,
     // after running a module, or when the focus grab is released because the
     // user interacted with another window. Deliberately per-instance, not
@@ -89,7 +89,7 @@ PanelWindow {
     // When "autohide" is set in statusbar.json the bar slides up out of the
     // screen and comes back only while the pointer is on it (or in the hot zone
     // at the very top of the screen), while it holds the keyboard for navigation
-    // (SUPER + SPACE), and while a tray menu is open. A hiding bar reserves no
+    // (SUPER + ALT + SPACE), and while a tray menu is open. A hiding bar reserves no
     // space, so windows tile up to the screen edge. Toggled from the SidebarApp
     // switch and via "qs ipc call statusbar autohideToggle".
     readonly property bool autohide: StatusbarSettings.autohide
