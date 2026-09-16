@@ -25,7 +25,7 @@ return {
   },
   keys = {
     {
-      "<leader>fe",
+      "<leader>e",
       function()
         Snacks.explorer()
       end,

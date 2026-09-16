@@ -90,10 +90,9 @@ return {
         map("n", "gi", vim.lsp.buf.implementation, "Goto implementation")
         map("n", "gr", vim.lsp.buf.references, "Goto references")
         map("n", "K", vim.lsp.buf.hover, "Hover documentation")
-        map("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
-        map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code action")
-        map("n", "<leader>D", vim.lsp.buf.type_definition, "Type definition")
-        map("n", "<leader>e", vim.diagnostic.open_float, "Show line diagnostics")
+        -- Rename/code-action/type-definition deliberately not remapped here --
+        -- Neovim 0.11+'s own LspAttach defaults already provide grn/gra/grt,
+        -- so a custom <leader>rn/<leader>ca/<leader>D would just duplicate them.
         map("n", "[d", function()
           vim.diagnostic.jump({ count = -1, float = true })
         end, "Previous diagnostic")

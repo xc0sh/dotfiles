@@ -1,6 +1,8 @@
--- Non-LSP keymaps. LSP-specific keymaps (goto-def, rename, hover, code
--- action) are set buffer-locally in the LspAttach autocmd in
--- lua/plugins/lsp.lua, not here.
+-- Non-LSP keymaps. LSP-specific keymaps (goto-def, hover, diagnostic nav) are
+-- set buffer-locally in the LspAttach autocmd in lua/plugins/lsp.lua, not
+-- here. Rename/code-action/type-definition are deliberately unmapped
+-- anywhere -- Neovim 0.11+'s own LspAttach defaults (grn/gra/grt) already
+-- cover them.
 
 local map = vim.keymap.set
 
@@ -35,6 +37,11 @@ map("n", "J", "mzJ`z", { desc = "Join line, keep cursor position" })
 -- Indent/outdent and stay in visual mode
 map("v", "<", "<gv", { desc = "Outdent selection" })
 map("v", ">", ">gv", { desc = "Indent selection" })
+
+-- Diagnostics float -- grouped under the Debug prefix (<leader>d) since it's
+-- debug-adjacent, and not LSP-exclusive (nvim-lint produces diagnostics too),
+-- so it doesn't belong in lsp.lua's buffer-local LspAttach scope.
+map("n", "<leader>dd", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
 
 -- Save
 map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save file" })
