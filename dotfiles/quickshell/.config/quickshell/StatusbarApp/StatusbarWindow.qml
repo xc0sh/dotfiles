@@ -166,6 +166,7 @@ PanelWindow {
         }
     }
     Component { id: cSwaync;     SwayncModule {} }
+    Component { id: cHypridle;   HypridleModule {} }
     // True while a system-tray context menu is open. Kept at window scope so
     // the pill can pin itself expanded while a menu is up (the tray lives in
     // the right area, which only exists while expanded).
@@ -212,6 +213,7 @@ PanelWindow {
         "launcher":   cLauncher,
         "clock":      cClock,
         "swaync":     cSwaync,
+        "hypridle":   cHypridle,
         "systemtray": cSystemTray,
         "logo":       cLogo,
         "power":      cPower,
