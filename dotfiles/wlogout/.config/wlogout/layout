@@ -1,36 +1,36 @@
 {
     "label" : "lock",
-    "action" : "~/.config/hypr/scripts/power.sh lock",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -l",
     "text" : "Lock",
     "keybind" : "l"
 }
 {
     "label" : "logout",
-    "action" : "~/.config/hypr/scripts/power.sh exit",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -e",
     "text" : "Log Out",
     "keybind" : "e"
 }
 {
     "label" : "suspend",
-    "action" : "~/.config/hypr/scripts/power.sh suspend",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -s",
     "text" : "Suspend",
     "keybind" : "u"
 }
 {
     "label" : "hibernate",
-    "action" : "~/.config/hypr/scripts/power.sh hibernate",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -b",
     "text" : "Hibernate",
     "keybind" : "h"
 }
 {
     "label" : "reboot",
-    "action" : "~/.config/hypr/scripts/power.sh reboot",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -r",
     "text" : "Restart",
     "keybind" : "r"
 }
 {
     "label" : "shutdown",
-    "action" : "~/.config/hypr/scripts/power.sh shutdown",
+    "action" : "~/.config/xcloud/scripts/xcloud-power -p",
     "text" : "Power Off",
     "keybind" : "s"
 }
