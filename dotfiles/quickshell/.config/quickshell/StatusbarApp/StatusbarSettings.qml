@@ -33,7 +33,7 @@ Singleton {
                     "alwaysExpanded": true, "autohide": false, "hideDelay": 400 },
         "pill":   { "collapsedWidth": 0, "expandedWidth": 680, "radius": 12, "animationDuration": 350 },
         "modules":{ "left": ["terminal", "workspaces"],
-                    "center": ["launcher", "clock", "swaync"],
+                    "center": ["launcher", "clock", "swaync", "hypridle"],
                     "right": ["updates", "battery", "powerprofile", "volume", "systemtray", "logo", "power"] },
         "border": { "width": 2, "colorTop": "", "colorBottom": "" },
         "opacity":{ "collapsed": 0.6, "expanded": 0.8 },
