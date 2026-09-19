@@ -1,116 +1,66 @@
 #!/usr/bin/env bash
 
-# This script provides a central control for managing various background listener scripts.
-# It allows starting, stopping, and restarting individual listeners or all registered listeners.
+# Central control for xcloud's background listener scripts, backed by the
+# xcloud-listener@ systemd --user template unit
+# (~/.config/systemd/user/xcloud-listener@.service) instead of nohup+pgrep -
+# that gets restart-on-crash and journald logging for free, and fixes
+# low-bat-notification's pgrep-vs-self-match ambiguity by construction.
+# Kept as a thin wrapper (not called directly as systemctl) because
+# xcloud-power and autostart.lua depend on this exact CLI surface.
 
-# Define an associative array to store listener names and their full paths.
-# Add more listeners here as needed, following the format:
-# LISTENERS["short-name"]="full/path/to/script.sh"
-declare -A LISTENERS
-LISTENERS["gtk-theme-switcher"]="$HOME/.config/xcloud/listeners/gtk-theme-switcher.sh"
-LISTENERS["low-bat-notification"]="$HOME/.config/xcloud/listeners/low-bat-notification.sh"
-# Example for another listener:
-# LISTENERS["another-listener"]="$HOME/.config/xcloud/listeners/another-listener.sh"
+declare -a LISTENERS=("gtk-theme-switcher" "low-bat-notification")
 
-# Function to start a specific listener script
-start_listener() {
-    local script_name="$1"
-    local init_flag="$2" # New argument for initialization flag
-    local script_path="${LISTENERS[$script_name]}"
-
-    if [ -z "$script_path" ]; then
-        echo "Error: Listener '$script_name' is not registered."
-        return 1
-    fi
-
-    echo "Attempting to start '$script_name'..."
-
-    # Check if the script file exists and is executable
-    if [ ! -f "$script_path" ]; then
-        echo "Error: Script file '$script_path' not found for '$script_name'."
-        return 1
-    fi
-    if [ ! -x "$script_path" ]; then
-        echo "Error: Script file '$script_path' is not executable. Please run 'chmod +x \"$script_path\"'."
-        return 1
-    fi
-
-    # Check if the script is already running
-    if pgrep -f "$script_path" >/dev/null; then
-        echo "Listener '$script_name' is already running (PID: $(pgrep -f "$script_path"))."
-        return 0
-    fi
-
-    # Start the script in the background using nohup to detach it from the terminal
-    # Redirect stdout and stderr to /dev/null to prevent nohup.out files
-    nohup "$script_path" "$init_flag" >/dev/null 2>&1 &
-    echo "Listener '$script_name' started successfully."
+is_registered() {
+    local name="$1" candidate
+    for candidate in "${LISTENERS[@]}"; do
+        [[ "$candidate" == "$name" ]] && return 0
+    done
+    return 1
 }
 
-# Function to stop a specific listener script
-stop_listener() {
-    local script_name="$1"
-    local script_path="${LISTENERS[$script_name]}"
+unit_name() { echo "xcloud-listener@$1.service"; }
 
-    if [ -z "$script_path" ]; then
-        echo "Error: Listener '$script_name' is not registered."
+require_registered() {
+    if ! is_registered "$1"; then
+        echo "Error: Listener '$1' is not registered."
         return 1
-    fi
-
-    echo "Attempting to stop '$script_name'..."
-
-    # Find the PID(s) of the running script
-    local -a pids
-    mapfile -t pids < <(pgrep -f "$script_path")
-
-    if [ "${#pids[@]}" -eq 0 ]; then
-        echo "Listener '$script_name' is not running."
-        return 0
-    else
-        echo "Found PID(s) for '$script_name': ${pids[*]}. Sending SIGTERM..."
-        kill "${pids[@]}"
-        # Give it a moment to terminate gracefully
-        sleep 1
-        if pgrep -f "$script_path" >/dev/null; then
-            echo "Listener '$script_name' did not stop gracefully. Sending SIGKILL..."
-            kill -9 "${pids[@]}"
-            echo "Listener '$script_name' forcefully stopped."
-        else
-            echo "Listener '$script_name' stopped successfully."
-        fi
     fi
 }
 
-# Function to restart a specific listener script
-restart_listener() {
-    local script_name="$1"
-    echo "Attempting to restart '$script_name'..."
-    stop_listener "$script_name"
-    start_listener "$script_name"
+start_listener()   { require_registered "$1" && systemctl --user start "$(unit_name "$1")"; }
+stop_listener()    { require_registered "$1" && systemctl --user stop "$(unit_name "$1")"; }
+restart_listener() { require_registered "$1" && systemctl --user restart "$(unit_name "$1")"; }
+status_listener()  { require_registered "$1" && systemctl --user status "$(unit_name "$1")"; }
+
+usage() {
+    echo "Usage: $0 [--startall | --stopall | --restartall | --statusall |"
+    echo "           --start <listener_name> | --stop <listener_name> |"
+    echo "           --restart <listener_name> | --status <listener_name>]"
+    echo ""
+    echo "Registered listeners:"
+    for name in "${LISTENERS[@]}"; do
+        echo "  - $name"
+    done
 }
 
-# Main script logic based on command-line arguments
 case "$1" in
 --startall)
     echo "Starting all registered listeners..."
-    for key in "${!LISTENERS[@]}"; do
-        start_listener "$key"
-    done
+    for name in "${LISTENERS[@]}"; do start_listener "$name"; done
     echo "All registered listeners processed."
     ;;
 --stopall)
     echo "Stopping all registered listeners..."
-    for key in "${!LISTENERS[@]}"; do
-        stop_listener "$key"
-    done
+    for name in "${LISTENERS[@]}"; do stop_listener "$name"; done
     echo "All registered listeners processed."
     ;;
 --restartall)
     echo "Restarting all registered listeners..."
-    for key in "${!LISTENERS[@]}"; do
-        restart_listener "$key"
-    done
+    for name in "${LISTENERS[@]}"; do restart_listener "$name"; done
     echo "All registered listeners processed."
+    ;;
+--statusall)
+    for name in "${LISTENERS[@]}"; do status_listener "$name"; done
     ;;
 --start)
     if [ -z "$2" ]; then
@@ -136,13 +86,16 @@ case "$1" in
     fi
     restart_listener "$2"
     ;;
+--status)
+    if [ -z "$2" ]; then
+        echo "Error: Missing listener name for --status option."
+        echo "Usage: $0 --status <listener_name>"
+        exit 1
+    fi
+    status_listener "$2"
+    ;;
 *)
-    echo "Usage: $0 [--startall | --stopall | --restartall | --startall-init | --start <listener_name> | --stop <listener_name> | --restart <listener_name> | --start-init <listener_name>]"
-    echo ""
-    echo "Registered listeners:"
-    for key in "${!LISTENERS[@]}"; do
-        echo "  - $key"
-    done
+    usage
     exit 1
     ;;
 esac

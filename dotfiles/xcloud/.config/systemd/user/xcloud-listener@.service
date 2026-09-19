@@ -1,0 +1,8 @@
+[Unit]
+Description=xCloud listener: %i
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.config/xcloud/listeners/%i.sh
+Restart=on-failure

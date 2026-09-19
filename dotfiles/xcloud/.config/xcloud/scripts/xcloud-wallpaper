@@ -128,7 +128,11 @@ run_matugen() {
     [ -f "$HOME/.local/bin/matugen" ] && bin="$HOME/.local/bin/matugen"
 
     info "Running matugen in $mode mode"
-    "$bin" color hex '#00FF00' -t scheme-content -m "$mode"
+    # --prefer is required: matugen's image-based extraction can find
+    # multiple candidate source colors, and without a preference it
+    # prompts interactively - which hangs/fails when run from a script
+    # with no TTY (as this always is).
+    "$bin" image "$IMAGE_PATH" -t scheme-content -m "$mode" --prefer=saturation
     info "Matugen updated"
 }
 

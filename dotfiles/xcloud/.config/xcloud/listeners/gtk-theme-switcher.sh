@@ -9,6 +9,11 @@ SETTINGS_FILE="$HOME/.config/gtk-3.0/settings.ini"
 SETTINGS_DIR="$HOME/.config/gtk-3.0"
 SETTINGS_BASENAME=$(basename "$SETTINGS_FILE")
 
+# Wallpaper cache written by xcloud-wallpaper; this listener re-derives the
+# matugen palette from the same image on a light/dark toggle alone.
+WALLPAPER_CACHE_FILE="$HOME/.cache/xcloud/hyprland-dotfiles/current_wallpaper"
+DEFAULT_WALLPAPER="$HOME/Pictures/wallpaper/forest2.jpg"
+
 # Ensure inotify-tools is installed
 if ! command -v inotifywait &> /dev/null
 then
@@ -46,9 +51,16 @@ apply_theme() {
         return 0
     fi
 
+    WALLPAPER_PATH="$DEFAULT_WALLPAPER"
+    if [ -f "$WALLPAPER_CACHE_FILE" ]; then
+        CACHED_WALLPAPER=$(cat "$WALLPAPER_CACHE_FILE")
+        [ -f "$CACHED_WALLPAPER" ] && WALLPAPER_PATH="$CACHED_WALLPAPER"
+    fi
+
     if [[ "$THEME_PREF" == "1" || "$THEME_PREF" == "true" ]]; then
         echo "Detected dark theme preference (gtk-application-prefer-dark-theme=1/true). Applying dark matugen theme..."
-        $MATUGEN_BIN color hex '#00FF00' -t scheme-content -m "dark"
+        # --prefer is required for non-interactive use; see xcloud-wallpaper.
+        $MATUGEN_BIN image "$WALLPAPER_PATH" -t scheme-content -m "dark" --prefer=saturation
 
         # Update Quickshell theme
         qs ipc call theme-manager reload
@@ -67,7 +79,7 @@ apply_theme() {
         swaync-client -rs
     elif [[ "$THEME_PREF" == "0" || "$THEME_PREF" == "false" ]]; then
         echo "Detected light theme preference (gtk-application-prefer-dark-theme=0/false). Applying light matugen theme..."
-        $MATUGEN_BIN color hex '#00FF00' -t scheme-content -m "light"
+        $MATUGEN_BIN image "$WALLPAPER_PATH" -t scheme-content -m "light" --prefer=saturation
 
         # Update Quickshell theme
         qs ipc call theme-manager reload
