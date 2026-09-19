@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# Prints another user's live Hyprland session env vars as KEY=VALUE lines
+# on stdout, one per line - meant to be consumed by xcloud-as-user (or
+# directly via `env $(xcloud-session-env <user>) <cmd>`).
+#
+# Exists because scripts run via `sudo -u <user> bash -c '...'` without
+# these injected have caused real problems: a full desktop outage when
+# hyprctl/dconf calls silently failed with no WAYLAND_DISPLAY/
+# HYPRLAND_INSTANCE_SIGNATURE/XDG_RUNTIME_DIR (see STATE.md's xcloud-power
+# incident), and hyprlock refusing to even connect to the compositor rather
+# than actually locking (see STATE.md's hyprlock investigation) - in both
+# cases the desktop just kept working normally, which looks like nothing
+# happened but actually means the intended action silently never ran.
+
+RED='\033[0;31m'
+NC='\033[0m'
+# Deliberately not reusing setup/_common.sh's info/warn/error: those write
+# to stdout, and this script's stdout must stay clean KEY=VALUE output for
+# `env $(...)` to consume - any error text belongs on stderr only.
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+
+usage() {
+    echo "Usage: ${BASH_SOURCE[0]##*/} <username>" >&2
+    echo "  Prints <username>'s live Hyprland session env vars" >&2
+    echo "  (XDG_RUNTIME_DIR, HYPRLAND_INSTANCE_SIGNATURE, WAYLAND_DISPLAY," >&2
+    echo "  DBUS_SESSION_BUS_ADDRESS, DISPLAY) as KEY=VALUE lines on stdout." >&2
+    echo "  Exits non-zero with no stdout output if no live session is found." >&2
+}
+
+if [[ $# -ne 1 || "$1" == "-h" || "$1" == "--help" ]]; then
+    usage
+    exit 1
+fi
+
+TARGET_USER="$1"
+
+if ! id "$TARGET_USER" &> /dev/null; then
+    error "No such user: $TARGET_USER"
+    exit 1
+fi
+
+read_environ() {
+    local pid="$1"
+    if [[ $EUID -eq 0 ]]; then
+        cat "/proc/$pid/environ" 2>/dev/null
+    else
+        # A plain `< /proc/$pid/environ` redirect is opened by this shell,
+        # not by sudo's child - it would fail with EACCES for another
+        # user's process even though sudo itself has root. `sudo cat`
+        # avoids that by having the privileged child open the file itself.
+        sudo cat "/proc/$pid/environ" 2>/dev/null
+    fi
+}
+
+# Bash's own `-S` test runs as this script's (unprivileged) invoker - it
+# can't traverse another user's 0700 $XDG_RUNTIME_DIR/hypr/<sig>/ even
+# though the socket file inside is itself world-accessible. Root can.
+socket_exists() {
+    local path="$1"
+    if [[ $EUID -eq 0 ]]; then
+        [[ -S "$path" ]]
+    else
+        sudo test -S "$path"
+    fi
+}
+
+# Preference order: a singular, session-critical process is more reliable
+# than "qs" (ambiguous - the main shell and the settings app's overview
+# both run as "qs") or Hyprland's own PID (its own environ doesn't reliably
+# carry HYPRLAND_INSTANCE_SIGNATURE the way its children's do).
+CANDIDATES=(hypridle waybar Hyprland)
+
+for comm in "${CANDIDATES[@]}"; do
+    for pid in $(pgrep -x -u "$TARGET_USER" "$comm" 2>/dev/null); do
+        ENVIRON=$(read_environ "$pid" | tr '\0' '\n')
+        [[ -z "$ENVIRON" ]] && continue
+
+        SIG=$(echo "$ENVIRON" | grep '^HYPRLAND_INSTANCE_SIGNATURE=' | cut -d= -f2-)
+        RUNTIME_DIR=$(echo "$ENVIRON" | grep '^XDG_RUNTIME_DIR=' | cut -d= -f2-)
+        [[ -z "$SIG" || -z "$RUNTIME_DIR" ]] && continue
+
+        # Confirm the session is actually still live, not a stale
+        # signature left over from an old compositor instance (see
+        # STATE.md's stale-WAYLAND_DISPLAY-in-old-panes note).
+        socket_exists "$RUNTIME_DIR/hypr/$SIG/.socket.sock" || continue
+
+        WAYLAND_DISPLAY_VAL=$(echo "$ENVIRON" | grep '^WAYLAND_DISPLAY=' | cut -d= -f2-)
+        DBUS_ADDR=$(echo "$ENVIRON" | grep '^DBUS_SESSION_BUS_ADDRESS=' | cut -d= -f2-)
+        DISPLAY_VAL=$(echo "$ENVIRON" | grep '^DISPLAY=' | cut -d= -f2-)
+
+        echo "XDG_RUNTIME_DIR=$RUNTIME_DIR"
+        echo "HYPRLAND_INSTANCE_SIGNATURE=$SIG"
+        [[ -n "$WAYLAND_DISPLAY_VAL" ]] && echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY_VAL"
+        [[ -n "$DBUS_ADDR" ]] && echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_ADDR"
+        [[ -n "$DISPLAY_VAL" ]] && echo "DISPLAY=$DISPLAY_VAL"
+        exit 0
+    done
+done
+
+error "No live Hyprland session found for user '$TARGET_USER'"
+exit 1

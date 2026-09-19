@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Runs <command> as <username> with that user's live Hyprland session env
+# vars correctly injected - see xcloud-session-env for why this matters.
+# Uses `sudo -Hu`, not `sudo -u`: without -H, $HOME stays the invoking
+# user's, which silently breaks anything the command reads from
+# ~/.config/... as the target user.
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+RED='\033[0;31m'
+NC='\033[0m'
+error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+
+usage() {
+    echo "Usage: ${BASH_SOURCE[0]##*/} <username> <command> [args...]" >&2
+    echo "  Runs <command> as <username>, with that user's live Hyprland" >&2
+    echo "  session env vars injected, via sudo -Hu." >&2
+}
+
+if [[ $# -lt 2 || "$1" == "-h" || "$1" == "--help" ]]; then
+    usage
+    exit 1
+fi
+
+TARGET_USER="$1"
+shift
+
+ENV_OUTPUT=$("$SCRIPT_DIR/xcloud-session-env" "$TARGET_USER")
+STATUS=$?
+if [[ $STATUS -ne 0 ]]; then
+    error "Could not resolve a live session for '$TARGET_USER'; see xcloud-session-env output above."
+    exit "$STATUS"
+fi
+
+ENV_ARGS=()
+while IFS= read -r line; do
+    [[ -n "$line" ]] && ENV_ARGS+=("$line")
+done <<< "$ENV_OUTPUT"
+
+exec sudo -Hu "$TARGET_USER" env "${ENV_ARGS[@]}" "$@"
