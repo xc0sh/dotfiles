@@ -26,5 +26,17 @@
 env_snapshot=$(systemctl --user show-environment 2>/dev/null)
 for var in WAYLAND_DISPLAY XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS; do
     value=$(sed -n "s/^${var}=//p" <<< "$env_snapshot")
-    [ -n "$value" ] && tmux set-environment -g "$var" "$value"
+    if [ -n "$value" ]; then
+        tmux set-environment -g "$var" "$value"
+    fi
 done
+
+# Always exit 0: no live systemd --user session (e.g. an account with no
+# active Hyprland session at all) is an expected, silent no-op case, not a
+# hook failure -- without this, the last loop iteration's own `[ -n ... ]`
+# test (false whenever that one var came back empty) became this script's
+# exit status, and tmux logs a "'script' returned 1" warning on every
+# client-attach/pane-focus-in for the rest of the session -- the exact
+# kind of noisy-but-uninformative failure signal this hook exists to
+# avoid in the first place.
+exit 0
