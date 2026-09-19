@@ -276,6 +276,7 @@ _active_output_geometry() {
 
 _capture() {
     local mode="$1" action="$2"
+    local status=0
 
     if [[ "$action" == "edit" ]]; then
         case "$mode" in
@@ -290,31 +291,32 @@ _capture() {
     case "$mode" in
         screen)
             xcloud_grim_capture "" "$screenshot_folder/$NAME"
+            status=$?
             [[ "$action" == "copy" || "$action" == "copysave" ]] && wl-copy --type "image/$image_format" < "$screenshot_folder/$NAME"
             [[ "$action" == "copy" ]] && rm -f "$screenshot_folder/$NAME"
             ;;
         output)
             if [[ "$action" == "copy" ]]; then
                 hyprshot -m output -m active -s --clipboard-only
+                status=$?
             else
                 hyprshot -m output -m active -s -o "$screenshot_folder" -f "$NAME"
+                status=$?
                 _fix_hyprshot_format "$screenshot_folder/$NAME"
             fi
             ;;
         area)
             if [[ "$action" == "copy" ]]; then
                 hyprshot -m region -z -s --clipboard-only
+                status=$?
             else
                 hyprshot -m region -z -s -o "$screenshot_folder" -f "$NAME"
+                status=$?
                 _fix_hyprshot_format "$screenshot_folder/$NAME"
             fi
             ;;
     esac
-    # Without this, _capture's own return status would be whatever the last
-    # conditional check inside the case above happened to evaluate to (e.g.
-    # false for a "save" that correctly skipped the copy-only branch) --
-    # harmless today since nothing checks it, but wrong on its own terms.
-    return 0
+    return "$status"
 }
 
 # _capture's own hyprshot/grim calls are silenced (-s, or just not sent one)
@@ -329,19 +331,29 @@ _notify_capture_result() {
     esac
 }
 
+_notify_capture_failed() {
+    notify_user --a "${APP_NAME}" --i "${NOTIFICATION_ICON}" --s "Screenshot failed" --m "Capture command did not succeed" --t 1000
+}
+
 # take shots
 takescreenshot() {
     sleep 1
-    _capture "$option_type_screenshot" "$option_chosen"
-    _notify_capture_result
+    if _capture "$option_type_screenshot" "$option_chosen"; then
+        _notify_capture_result
+    else
+        _notify_capture_failed
+    fi
 }
 
 takescreenshot_timer() {
     sleep 1
     timer
     sleep 1
-    _capture "$option_type_screenshot" "$option_chosen"
-    _notify_capture_result
+    if _capture "$option_type_screenshot" "$option_chosen"; then
+        _notify_capture_result
+    else
+        _notify_capture_failed
+    fi
 }
 
 # Execute Command
