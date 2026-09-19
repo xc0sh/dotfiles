@@ -74,9 +74,13 @@ PanelWindow {
     // Animate between your specific 87px top margin and off-screen (-800)
     property real currentTopMargin: isOpen ? 67 : -820 
 
+    // qmllint disable unresolved-type
+    // PanelWindow's "margins" grouped property isn't in qmllint's bundled
+    // QtQuick type info, so it always reports as unresolved - not a bug.
     margins {
         top: root.currentTopMargin
     }
+    // qmllint enable unresolved-type
 
     Behavior on currentTopMargin {
         NumberAnimation {

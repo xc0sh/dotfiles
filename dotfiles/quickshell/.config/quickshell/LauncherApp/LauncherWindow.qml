@@ -46,9 +46,13 @@ PanelWindow {
     anchors {
         top: true
     }
+    // qmllint disable unresolved-type
+    // PanelWindow's "margins" grouped property isn't in qmllint's bundled
+    // QtQuick type info, so it always reports as unresolved - not a bug.
     margins {
         top: Math.round((screen ? screen.height : 900) * 0.18)
     }
+    // qmllint enable unresolved-type
 
     property bool isOpen: false
     property int selectedIndex: 0

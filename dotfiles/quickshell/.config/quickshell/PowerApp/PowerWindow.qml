@@ -72,9 +72,13 @@ PanelWindow {
     // Keep the window mapped to the screen while the animation is playing
     visible: isOpen || slideAnim.running
 
+    // qmllint disable unresolved-type
+    // PanelWindow's "margins" grouped property isn't in qmllint's bundled
+    // QtQuick type info, so it always reports as unresolved - not a bug.
     margins {
         right: root.currentMargin
     }
+    // qmllint enable unresolved-type
 
     // Ternary operator: If open, set to 20. If closed, set to -150.
     property real currentMargin: isOpen ? 0 : -170

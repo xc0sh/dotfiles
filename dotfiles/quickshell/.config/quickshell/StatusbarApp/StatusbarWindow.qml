@@ -330,9 +330,13 @@ PanelWindow {
         right: true
     }
 
+    // qmllint disable unresolved-type
+    // PanelWindow's "margins" grouped property isn't in qmllint's bundled
+    // QtQuick type info, so it always reports as unresolved - not a bug.
     margins {
         top: 0
     }
+    // qmllint enable unresolved-type
 
     implicitHeight: barHeight + 40
 

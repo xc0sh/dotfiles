@@ -141,6 +141,50 @@ jobs:
             xcloud-dotfiles-installer --install /tmp/ci-test.dotinst --testmode
           '
 
+  qml-lint:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    # quickshell itself (extra repo, no AUR needed) depends on
+    # qt6-declarative, which ships the qmllint that actually understands
+    # this repo's QML -- a bare `qmllint` on a real Arch box is qt5's
+    # linter and exits silently/255 on any Quickshell file. Catches the
+    # exact bug class that shipped once already: a branding pass renamed a
+    # local component to a lowercase-first-letter name (invalid per QML's
+    # own type-name rules), which took the entire ~9k-line main shell down
+    # and went unnoticed until a live session hit it.
+    steps:
+      - name: Install quickshell (pulls in the real qt6 qmllint) and git
+        run: pacman -Sy --needed --noconfirm quickshell git
+
+      - uses: actions/checkout@v4
+
+      - name: Lint every .qml file
+        run: |
+          # Quickshell resolves its own "qs.<Dir>" root-relative import
+          # alias at runtime; qmllint has no idea about it on its own. A
+          # directory literally named "qs" on the import path, symlinked
+          # to this repo's quickshell config root, makes "import
+          # qs.CustomTheme" etc. resolve the way Quickshell itself would.
+          QUICKSHELL_DIR="$GITHUB_WORKSPACE/dotfiles/quickshell/.config/quickshell"
+          IMPORT_ROOT=$(mktemp -d)
+          ln -s "$QUICKSHELL_DIR" "$IMPORT_ROOT/qs"
+
+          # Only --unresolved-type is promoted to error for now: it alone
+          # catches the historical bug above (confirmed by re-running this
+          # exact check against that broken commit). --import stays at its
+          # default (warning) level -- several files import their own
+          # sibling directory as "qs.<SameDir>" without that directory
+          # having its own qmldir, which is a real pre-existing gap but a
+          # separate, wider cleanup than this check is scoped to gate on.
+          status=0
+          while IFS= read -r -d '' f; do
+            if ! /usr/lib/qt6/bin/qmllint -I "$IMPORT_ROOT" --unresolved-type error "$f"; then
+              echo "::error file=$f::qmllint failed"
+              status=1
+            fi
+          done < <(find "$QUICKSHELL_DIR" -name '*.qml' -print0)
+          exit $status
+
   stow-dry-run:
     runs-on: ubuntu-latest
     steps:
