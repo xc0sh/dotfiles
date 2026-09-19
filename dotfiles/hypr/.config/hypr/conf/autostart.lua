@@ -9,8 +9,13 @@ hl.on("hyprland.start", function ()
         f:close()
     end
 
-    -- Export variables to systemd
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    -- Export variables to systemd. HYPRLAND_INSTANCE_SIGNATURE and
+    -- DBUS_SESSION_BUS_ADDRESS are needed too: any systemd --user unit
+    -- that calls hyprctl (e.g. the xcloud-listener@ template) or talks to
+    -- D-Bus (dconf, notify-send, swaync-client) needs them in the
+    -- systemd user manager's own activation environment, not just this
+    -- shell's.
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE DBUS_SESSION_BUS_ADDRESS")
 
     -- Restart portals so they catch the environment
     hl.exec_cmd("systemctl --user stop xdg-desktop-portal xdg-desktop-portal-hyprland")
@@ -47,7 +52,7 @@ hl.on("hyprland.start", function ()
     end
 
     -- Autostart scripts
-    hl.exec_cmd("~/.config/xcloud/scripts/xcloud-autostart > ~/.mydotfiles/xcloud-autostart.log 2>&1")
+    hl.exec_cmd("mkdir -p ~/.cache/xcloud && ~/.config/xcloud/scripts/xcloud-autostart > ~/.cache/xcloud/xcloud-autostart.log 2>&1")
 
     -- Load GTK settings
     hl.exec_cmd("~/.config/hypr/scripts/gtk.sh")

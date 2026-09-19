@@ -16,5 +16,9 @@ end
 # Fastfetch
 # -----------------------------------------------------
 if status is-interactive
-fastfetch
+    # Disable terminal auto-wrap (DECAWM) for the run so a line that's wider
+    # than a narrow/tiled terminal (e.g. the cpu line's clock speed) clips
+    # at the right edge instead of wrapping and breaking the box-drawing
+    # layout onto a second row.
+    printf '\e[?7l'; fastfetch; printf '\e[?7h'
 end
